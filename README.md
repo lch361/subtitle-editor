@@ -27,3 +27,7 @@ flutter build $target
 ```
 
 Где `$target` &mdash; целевая ОС, например, `linux`, `windows`.
+
+# Лицензия
+
+GPL-3.0

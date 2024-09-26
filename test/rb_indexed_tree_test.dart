@@ -11,6 +11,9 @@ void main() {
     expect(rb.insert(2), 1);
     expect(rb.insert(3), 2);
     expect(rb.insert(0), 0);
+    expect(rb.insert(9), 7);
+    expect(rb.insert(8), 7);
+    expect(rb.insert(7), 7);
   });
 
   test('Length', () {
@@ -27,6 +30,12 @@ void main() {
     rb.insert(3);
     rb.insert(0);
     expect(rb.length, 7);
+
+    rb.insert(9);
+    rb.insert(8);
+    rb.insert(7);
+    expect(rb.length, 10);
+    print(rb);
   });
 
   test('Indices', () {
@@ -38,8 +47,11 @@ void main() {
     rb.insert(2);
     rb.insert(3);
     rb.insert(0);
+    rb.insert(9);
+    rb.insert(8);
+    rb.insert(7);
 
-    for (int i = 0; i < 7; ++i) {
+    for (int i = 0; i < 10; ++i) {
       expect(rb[i], i);
     }
   });

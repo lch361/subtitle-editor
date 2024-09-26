@@ -1,67 +1,85 @@
-enum Color { red, black }
+enum _Color { red, black }
 
-class RbIndexedNode<T extends Comparable<T>> {
+class _RbIndexedNode<T extends Comparable<T>> {
   T value;
   int length = 1;
-  Color color;
-  RbIndexedTree<T> left = RbIndexedTree(), right = RbIndexedTree();
-  RbIndexedNode<T>? parent;
+  _Color color;
+  RbIndexedTree<T> left = RbIndexedTree(), right = RbIndexedTree(), parent;
 
-  RbIndexedNode(this.value, this.parent, this.color) {
-    var node = parent;
+  _RbIndexedNode(this.value, this.parent, this.color) {
+    var node = parent._node;
     while (node != null) {
       node.length += 1;
-      node = node.parent;
+      node = node.parent._node;
     }
   }
 
   void decrementLength() {
     var node = this;
-    while (node.parent != null) {
+    while (node.parent._node != null) {
       node.length -= 1;
-      node = node.parent as RbIndexedNode<T>;
+      node = node.parent._node as _RbIndexedNode<T>;
     }
   }
 
-  RbIndexedNode<T> insertRebalance() {
-    var current = this;
+  void insertRebalance() {
+    var currentNode = this;
 
-    // while (true) {
-    //   final parent = current.parent;
-    //   if (parent == null) break; // Case 3
-    //   if (parent.color == Color.black) break; // Case 1
+    while (true) {
+      var parent = currentNode.parent;
 
-    //   final grandParent = parent.parent;
-    //   if (grandParent == null) {
-    //     // Case 4
-    //     parent.color = Color.black;
-    //     break;
-    //   }
+      var parentNode = parent._node;
+      if (parentNode == null || parentNode.color == _Color.black) {
+        break; // Case 3 || Case 1
+      }
 
-    //   final uncleTree = identical(grandParent.left.node, parent)
-    //       ? grandParent.right
-    //       : grandParent.left;
+      final grandParent = parentNode.parent;
+      final grandParentNode = grandParent._node;
+      if (grandParentNode == null) {
+        // Case 4
+        parentNode.color = _Color.black;
+        break;
+      }
 
-    //   assert(uncleTree.node != null);
-    //   final uncle = uncleTree.node as RbIndexedNode<T>;
+      final isParentLeft = identical(grandParentNode.left._node, parentNode);
+      final uncleTree =
+          isParentLeft ? grandParentNode.right : grandParentNode.left;
 
-    //   assert(parent.color == Color.red);
-    //   assert(grandParent.color == Color.black);
+      final uncleNode = uncleTree._node;
+      assert(grandParentNode.color == _Color.black);
 
-    //   if (uncle.color == Color.red) {
-    //     // Case 2
-    //     parent.color = uncle.color = Color.black;
-    //     grandParent.color = Color.red;
-    //     current = grandParent;
-    //     continue;
-    //   }
+      if (uncleNode != null && uncleNode.color == _Color.red) {
+        // Case 2
+        parentNode.color = uncleNode.color = _Color.black;
+        grandParentNode.color = _Color.red;
+        currentNode = grandParentNode;
+        continue;
+      }
 
-    //   // Case 5: TODO
-    //   // Case 6: TODO
-    //   break;
-    // }
+      final isCurrentLeft = identical(parentNode.left._node, currentNode);
+      final innerChild = isCurrentLeft ^ isParentLeft;
+      if (innerChild) {
+        // Case 5
+        if (isParentLeft) {
+          parent._rotateCounterClockwise();
+        } else {
+          parent._rotateClockwise();
+        }
 
-    return current;
+        (currentNode, parentNode) = (parentNode, currentNode);
+      }
+
+      // Case 6
+      if (isParentLeft) {
+        grandParent._rotateClockwise();
+      } else {
+        grandParent._rotateCounterClockwise();
+      }
+      parentNode.color = _Color.black;
+      grandParentNode.color = _Color.red;
+
+      break;
+    }
   }
 
   int index() {
@@ -69,10 +87,10 @@ class RbIndexedNode<T extends Comparable<T>> {
     var current = this;
 
     while (true) {
-      final parent = current.parent;
+      final parent = current.parent._node;
       if (parent == null) break;
 
-      if (identical(parent.right.node, current)) {
+      if (identical(parent.right._node, current)) {
         result += parent.left.length + 1;
       }
 
@@ -84,21 +102,26 @@ class RbIndexedNode<T extends Comparable<T>> {
 }
 
 class RbIndexedTree<T extends Comparable<T>> {
-  RbIndexedNode<T>? node;
+  _RbIndexedNode<T>? _node;
 
-  int get length => node?.length ?? 0;
+  RbIndexedTree._withNode([this._node]);
+  RbIndexedTree();
+
+  int get length => _node?.length ?? 0;
 
   /// # Инварианты
   /// ```dart
-  /// assert(0 <= index < length);
+  /// assert(0 <= index && index < length);
   /// assert(this._treeByIndex(index).node != null);
   /// ```
   RbIndexedTree<T> _treeByIndex(int index) {
+    assert(0 <= index && index < this.length);
+
     var tree = this;
     var start = 0;
 
     while (true) {
-      final node = tree.node as RbIndexedNode<T>;
+      final node = tree._node as _RbIndexedNode<T>;
       final leftLength = node.left.length;
       final treeIndex = start + leftLength;
 
@@ -119,7 +142,7 @@ class RbIndexedTree<T extends Comparable<T>> {
   /// assert(0 <= index < length);
   /// ```
   T operator [](int index) {
-    return (_treeByIndex(index).node as RbIndexedNode<T>).value;
+    return (_treeByIndex(index)._node as _RbIndexedNode<T>).value;
   }
 
   /// # Инварианты
@@ -128,7 +151,7 @@ class RbIndexedTree<T extends Comparable<T>> {
   /// ```
   T pop(int index) {
     final tree = _treeByIndex(index);
-    final value = (tree.node as RbIndexedNode<T>).value;
+    final value = (tree._node as _RbIndexedNode<T>).value;
     tree._remove();
     return value;
   }
@@ -144,53 +167,58 @@ class RbIndexedTree<T extends Comparable<T>> {
   /// assert(this.node != null);
   /// ```
   void _remove() {
-    var node = this.node as RbIndexedNode<T>;
+    assert(this._node != null);
+
+    var node = this._node as _RbIndexedNode<T>;
     switch ((node.left, node.right)) {
-      case (RbIndexedTree<T>(node: null), RbIndexedTree<T>(node: null)):
-        final parent = node.parent;
+      case (RbIndexedTree<T>(_node: null), RbIndexedTree<T>(_node: null)):
+        final parent = node.parent._node;
         if (parent == null) {
-          this.node = null;
-        } else if (node.color == Color.red) {
+          this._node = null;
+        } else if (node.color == _Color.red) {
           parent.decrementLength();
-          this.node = null;
+          this._node = null;
         } else {
           throw UnimplementedError("Black childless node rebalancing");
         }
-      case (RbIndexedTree<T>(node: null), RbIndexedTree<T> child):
-      case (RbIndexedTree<T> child, RbIndexedTree<T>(node: null)):
-        var node = child.node as RbIndexedNode<T>;
-        node.color = Color.black;
-        node.parent?.decrementLength();
+      case (RbIndexedTree<T>(_node: null), RbIndexedTree<T> child):
+      case (RbIndexedTree<T> child, RbIndexedTree<T>(_node: null)):
+        var node = child._node as _RbIndexedNode<T>;
+        node.color = _Color.black;
+        node.parent._node?.decrementLength();
 
-        this.node = node;
+        this._node = node;
       case (_, RbIndexedTree<T> right):
         var leftmost = right;
         while (true) {
-          final left = (leftmost.node as RbIndexedNode<T>).left;
-          if (left.node == null) break;
+          final left = (leftmost._node as _RbIndexedNode<T>).left;
+          if (left._node == null) break;
           leftmost = left;
         }
 
-        node.value = (leftmost.node as RbIndexedNode<T>).value;
+        node.value = (leftmost._node as _RbIndexedNode<T>).value;
         leftmost._remove();
     }
   }
 
   /// # Инварианты
   /// ```dart
-  /// assert(ret.color == Color.red);
+  /// assert(this.length != (1 << 63) - 1);
+  /// assert(this._insert(value).color == Color.red);
   /// ```
-  RbIndexedNode<T> _insert(T value) {
-    RbIndexedNode<T>? parent;
+  _RbIndexedNode<T> _insertNode(T value) {
+    assert(this.length != (1 << 63) - 1);
+
+    var parent = RbIndexedTree<T>();
     var tree = this;
-    while (tree.node != null) {
-      final node = tree.node as RbIndexedNode<T>;
-      parent = node;
-      tree = value.compareTo(node.value) == -1 ? node.left : node.right;
+    while (tree._node != null) {
+      parent = tree;
+      final node = tree._node as _RbIndexedNode<T>;
+      tree = value.compareTo(node.value) < 0 ? node.left : node.right;
     }
 
-    final node = RbIndexedNode(value, parent, Color.red);
-    tree.node = node;
+    final node = _RbIndexedNode(value, parent, _Color.red);
+    tree._node = node;
     return node;
   }
 
@@ -198,5 +226,94 @@ class RbIndexedTree<T extends Comparable<T>> {
   /// ```dart
   /// assert(this.length != (1 << 63) - 1);
   /// ```
-  int insert(T value) => _insert(value).insertRebalance().index();
+  int insert(T value) {
+    final node = _insertNode(value);
+    node.insertRebalance();
+    return node.index();
+  }
+
+  /// # Инварианты
+  /// ```dart
+  /// assert(this._node?.right._node != null);
+  /// ```
+  void _rotateCounterClockwise() {
+    assert(this._node?.right._node != null);
+
+    final current = this;
+
+    final currentNode = current._node as _RbIndexedNode<T>;
+    final parent = currentNode.parent;
+
+    final child = currentNode.right;
+    final childNode = child._node as _RbIndexedNode<T>;
+
+    final grandInnerChild = childNode.left;
+    final grandOuterChild = childNode.right;
+
+    final newTree = RbIndexedTree._withNode(currentNode);
+    currentNode.left._node?.parent = newTree;
+    currentNode.right = grandInnerChild;
+    grandInnerChild._node?.parent = newTree;
+
+    childNode.left = newTree;
+    currentNode.parent = child;
+
+    this._node = childNode;
+    childNode.parent = parent;
+
+    childNode.length = currentNode.length;
+    currentNode.length -= grandOuterChild.length + 1;
+  }
+
+  /// # Инварианты
+  /// ```dart
+  /// assert(this._node?.left._node != null);
+  /// ```
+  void _rotateClockwise() {
+    assert(this._node?.left._node != null);
+
+    final current = this;
+
+    final currentNode = current._node as _RbIndexedNode<T>;
+    final parent = currentNode.parent;
+
+    final child = currentNode.left;
+    final childNode = child._node as _RbIndexedNode<T>;
+
+    final grandInnerChild = childNode.right;
+    final grandOuterChild = childNode.left;
+
+    final newTree = RbIndexedTree._withNode(currentNode);
+    currentNode.right._node?.parent = newTree;
+    currentNode.left = grandInnerChild;
+    grandInnerChild._node?.parent = newTree;
+
+    childNode.right = newTree;
+    currentNode.parent = child;
+
+    this._node = childNode;
+    childNode.parent = parent;
+
+    childNode.length = currentNode.length;
+    currentNode.length -= grandOuterChild.length + 1;
+  }
+
+  /// Вывод дерева в JSON для отладки
+  @override
+  String toString() {
+    final length = this.length;
+    final result = StringBuffer("{\"length\":$length");
+
+    final node = this._node;
+    if (node != null) {
+      final value = node.value;
+      final color = node.color == _Color.red ? "\"Red\"" : "\"Black\"";
+      final left = node.left.toString();
+      final right = node.right.toString();
+      result.write(
+          ",\"value\":$value,\"color\":$color,\"right\":$right,\"left\":$left");
+    }
+    result.write("}");
+    return result.toString();
+  }
 }

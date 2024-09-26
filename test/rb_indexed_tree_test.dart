@@ -61,5 +61,25 @@ void main() {
         expect(rb[i], i);
       }
     });
+
+    test('Removal', () {
+      const data = [
+        (2, 2),
+        (1, 1),
+        (5, 7),
+        (6, 9),
+        (0, 0),
+        (0, 3),
+        (2, 6),
+        (1, 5),
+        (1, 8),
+        (0, 4)
+      ];
+      for (int i = 0; i < 10; ++i) {
+        final (index, value) = data[i];
+        expect(rb.pop(index), value);
+        expect(rb.length, 9 - i);
+      }
+    });
   });
 }

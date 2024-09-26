@@ -16,9 +16,11 @@ class _RbIndexedNode<T extends Comparable<T>> {
 
   void decrementLength() {
     var node = this;
-    while (node.parent._node != null) {
+    while (true) {
       node.length -= 1;
-      node = node.parent._node as _RbIndexedNode<T>;
+      final parent = node.parent._node;
+      if (parent == null) break;
+      node = parent;
     }
   }
 
@@ -167,8 +169,6 @@ class RbIndexedTree<T extends Comparable<T>> {
   /// assert(this.node != null);
   /// ```
   void _remove() {
-    assert(this._node != null);
-
     var node = this._node as _RbIndexedNode<T>;
     switch ((node.left, node.right)) {
       case (RbIndexedTree<T>(_node: null), RbIndexedTree<T>(_node: null)):
@@ -179,15 +179,23 @@ class RbIndexedTree<T extends Comparable<T>> {
           parent.decrementLength();
           this._node = null;
         } else {
-          throw UnimplementedError("Black childless node rebalancing");
+          parent.decrementLength();
+          this._node = null;
+          // throw UnimplementedError("Black childless node rebalancing");
         }
-      case (RbIndexedTree<T>(_node: null), RbIndexedTree<T> child):
-      case (RbIndexedTree<T> child, RbIndexedTree<T>(_node: null)):
-        var node = child._node as _RbIndexedNode<T>;
-        node.color = _Color.black;
-        node.parent._node?.decrementLength();
+      case (
+          RbIndexedTree<T>(_node: null),
+          RbIndexedTree<T>(_node: _RbIndexedNode<T> childNode)
+        ):
+      case (
+          RbIndexedTree<T>(_node: _RbIndexedNode<T> childNode),
+          RbIndexedTree<T>(_node: null)
+        ):
+        childNode.color = _Color.black;
+        childNode.parent._node?.decrementLength();
 
-        this._node = node;
+        this._node = childNode;
+        childNode.parent = node.parent;
       case (_, RbIndexedTree<T> right):
         var leftmost = right;
         while (true) {

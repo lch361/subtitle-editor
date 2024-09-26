@@ -8,10 +8,10 @@ class RbIndexedNode<T extends Comparable<T>> {
   RbIndexedNode<T>? parent;
 
   RbIndexedNode(this.value, this.parent, this.color) {
-    var node = this;
-    while (node.parent != null) {
+    var node = parent;
+    while (node != null) {
       node.length += 1;
-      node = node.parent as RbIndexedNode<T>;
+      node = node.parent;
     }
   }
 
@@ -26,40 +26,40 @@ class RbIndexedNode<T extends Comparable<T>> {
   RbIndexedNode<T> insertRebalance() {
     var current = this;
 
-    while (true) {
-      final parent = current.parent;
-      if (parent == null) break; // Case 3
-      if (parent.color == Color.black) break; // Case 1
+    // while (true) {
+    //   final parent = current.parent;
+    //   if (parent == null) break; // Case 3
+    //   if (parent.color == Color.black) break; // Case 1
 
-      final grandParent = parent.parent;
-      if (grandParent == null) {
-        // Case 4
-        parent.color = Color.black;
-        break;
-      }
+    //   final grandParent = parent.parent;
+    //   if (grandParent == null) {
+    //     // Case 4
+    //     parent.color = Color.black;
+    //     break;
+    //   }
 
-      final uncleTree = identical(grandParent.left.node, parent)
-          ? grandParent.right
-          : grandParent.left;
+    //   final uncleTree = identical(grandParent.left.node, parent)
+    //       ? grandParent.right
+    //       : grandParent.left;
 
-      assert(uncleTree.node != null);
-      final uncle = uncleTree.node as RbIndexedNode<T>;
+    //   assert(uncleTree.node != null);
+    //   final uncle = uncleTree.node as RbIndexedNode<T>;
 
-      assert(parent.color == Color.red);
-      assert(grandParent.color == Color.black);
+    //   assert(parent.color == Color.red);
+    //   assert(grandParent.color == Color.black);
 
-      if (uncle.color == Color.red) {
-        // Case 2
-        parent.color = uncle.color = Color.black;
-        grandParent.color = Color.red;
-        current = grandParent;
-        continue;
-      }
+    //   if (uncle.color == Color.red) {
+    //     // Case 2
+    //     parent.color = uncle.color = Color.black;
+    //     grandParent.color = Color.red;
+    //     current = grandParent;
+    //     continue;
+    //   }
 
-      // Case 5: TODO
-      // Case 6: TODO
-      break;
-    }
+    //   // Case 5: TODO
+    //   // Case 6: TODO
+    //   break;
+    // }
 
     return current;
   }
@@ -102,7 +102,7 @@ class RbIndexedTree<T extends Comparable<T>> {
       final leftLength = node.left.length;
       final treeIndex = start + leftLength;
 
-      switch (treeIndex.compareTo(index)) {
+      switch (index.compareTo(treeIndex)) {
         case -1:
           tree = node.left;
         case 1:
@@ -186,7 +186,7 @@ class RbIndexedTree<T extends Comparable<T>> {
     while (tree.node != null) {
       final node = tree.node as RbIndexedNode<T>;
       parent = node;
-      tree = node.value.compareTo(value) == -1 ? node.left : node.right;
+      tree = value.compareTo(node.value) == -1 ? node.left : node.right;
     }
 
     final node = RbIndexedNode(value, parent, Color.red);

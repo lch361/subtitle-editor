@@ -24,6 +24,10 @@ class _RbIndexedNode<T extends Comparable<T>> {
     }
   }
 
+  void removeRebalance() {
+    // TODO
+  }
+
   void insertRebalance() {
     var currentNode = this;
 
@@ -173,16 +177,11 @@ class RbIndexedTree<T extends Comparable<T>> {
     switch ((node.left, node.right)) {
       case (RbIndexedTree<T>(_node: null), RbIndexedTree<T>(_node: null)):
         final parent = node.parent._node;
-        if (parent == null) {
-          this._node = null;
-        } else if (node.color == _Color.red) {
-          parent.decrementLength();
-          this._node = null;
-        } else {
-          parent.decrementLength();
-          this._node = null;
-          // throw UnimplementedError("Black childless node rebalancing");
+        parent?.decrementLength();
+        if (node.color == _Color.black) {
+          node.removeRebalance();
         }
+        this._node = null;
       case (
           RbIndexedTree<T>(_node: null),
           RbIndexedTree<T>(_node: _RbIndexedNode<T> childNode)

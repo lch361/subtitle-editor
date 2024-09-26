@@ -35,7 +35,6 @@ void main() {
     rb.insert(8);
     rb.insert(7);
     expect(rb.length, 10);
-    print(rb);
   });
 
   test('Indices', () {

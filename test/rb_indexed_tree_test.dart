@@ -75,10 +75,52 @@ void main() {
         (1, 8),
         (0, 4)
       ];
-      for (int i = 0; i < 10; ++i) {
+      for (int i = 0; i < data.length; ++i) {
         final (index, value) = data[i];
         expect(rb.pop(index), value);
-        expect(rb.length, 9 - i);
+        expect(rb.length, data.length - 1 - i);
+      }
+    });
+  });
+
+  group('RbIndexedTree.repeating', () {
+    var rb = RbIndexedTree<num>();
+
+    setUp(() {
+      rb.insert(4);
+      rb.insert(4);
+      rb.insert(5);
+      rb.insert(5);
+      rb.insert(5);
+      rb.insert(6);
+      rb.insert(6);
+    });
+
+    tearDown(() {
+      rb = RbIndexedTree();
+    });
+
+    test('Indices', () {
+      const data = [4, 4, 5, 5, 5, 6, 6];
+      for (int i = 0; i < data.length; ++i) {
+        expect(rb[i], data[i]);
+      }
+    });
+
+    test('Removal', () {
+      const data = [
+        (2, 5),
+        (4, 6),
+        (1, 4),
+        (2, 5),
+        (2, 6),
+        (0, 4),
+        (0, 5),
+      ];
+      for (int i = 0; i < data.length; ++i) {
+        final (index, value) = data[i];
+        expect(rb.pop(index), value);
+        expect(rb.length, data.length - 1 - i);
       }
     });
   });

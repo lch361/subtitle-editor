@@ -24,15 +24,103 @@ class _RbIndexedNode<T extends Comparable<T>> {
     }
   }
 
+  /// # Инварианты
+  /// Применять лишь к недавно удалённой ноде.
+  /// ```dart
+  /// assert(this.parent._node != null);
+  /// assert(this.left._node == this.right._node == null);
+  /// assert(this.color == _Color.black);
+  /// ```
   void removeRebalance() {
-    // TODO
+    var parent = this.parent;
+    var parentNode = parent._node as _RbIndexedNode<T>;
+
+    var isCurrentLeft = parentNode.left._node == null;
+
+    while (true) {
+      var sibling = isCurrentLeft ? parentNode.right : parentNode.left;
+      if (sibling._node == null) break;
+      var siblingNode = sibling._node as _RbIndexedNode<T>;
+
+      var closeNephew = isCurrentLeft ? siblingNode.left : siblingNode.right;
+      var distantNephew = isCurrentLeft ? siblingNode.right : siblingNode.left;
+
+      if (siblingNode.color == _Color.red) {
+        // Case 3
+        final newParent = isCurrentLeft
+            ? parent._rotateCounterClockwise()
+            : parent._rotateClockwise();
+        sibling = parent;
+        parent = newParent;
+
+        parentNode.color = _Color.red;
+        siblingNode.color = _Color.black;
+
+        // sibling = closeNephew;
+        // siblingNode = closeNephew._node as _RbIndexedNode<T>;
+        // distantNephew = isCurrentLeft ? siblingNode.right : siblingNode.left;
+        // closeNephew = isCurrentLeft ? siblingNode.left : siblingNode.right;
+      }
+
+      final closeNephewNode = closeNephew._node;
+      if (closeNephewNode != null && closeNephewNode.color == _Color.red) {
+        //   // Case 5
+        //   if (isCurrentLeft) {
+        //     sibling._rotateClockwise();
+        //   } else {
+        //     sibling._rotateCounterClockwise();
+        //   }
+
+        //   siblingNode.color = _Color.red;
+        //   closeNephewNode.color = _Color.black;
+
+        //   distantNephew = sibling;
+        //   sibling = closeNephew;
+        //   siblingNode = sibling._node as _RbIndexedNode<T>;
+      }
+
+      final distantNephewNode = distantNephew._node;
+      if (distantNephewNode != null && distantNephewNode.color == _Color.red) {
+        // Case 6
+        // if (isCurrentLeft) {
+        //   parent._rotateCounterClockwise();
+        // } else {
+        //   parent._rotateClockwise();
+        // }
+
+        // siblingNode.color = parentNode.color;
+        // parentNode.color = _Color.black;
+        // distantNephewNode.color = _Color.black;
+        break;
+      }
+
+      if (parentNode.color == _Color.red) {
+        // Case 4
+        siblingNode.color = _Color.red;
+        parentNode.color = _Color.black;
+        break;
+      }
+
+      // Case 2
+      siblingNode.color = _Color.red;
+      final newParent = parentNode.parent;
+      final newParentNode = newParent._node;
+
+      // Case 1
+      if (newParentNode == null) break;
+      isCurrentLeft = newParentNode.left._node == parentNode;
+
+      parent = newParent;
+      parentNode = newParentNode;
+      break;
+    }
   }
 
   void insertRebalance() {
     var currentNode = this;
 
     while (true) {
-      var parent = currentNode.parent;
+      final parent = currentNode.parent;
 
       var parentNode = parent._node;
       if (parentNode == null || parentNode.color == _Color.black) {
@@ -176,12 +264,11 @@ class RbIndexedTree<T extends Comparable<T>> {
     var node = this._node as _RbIndexedNode<T>;
     switch ((node.left, node.right)) {
       case (RbIndexedTree<T>(_node: null), RbIndexedTree<T>(_node: null)):
-        final parent = node.parent._node;
-        parent?.decrementLength();
-        if (node.color == _Color.black) {
-          node.removeRebalance();
-        }
         this._node = null;
+        final parent = node.parent._node;
+        if (parent == null) break;
+        parent.decrementLength();
+        if (node.color == _Color.black) node.removeRebalance();
       case (
           RbIndexedTree<T>(_node: null),
           RbIndexedTree<T>(_node: _RbIndexedNode<T> childNode)
@@ -243,7 +330,9 @@ class RbIndexedTree<T extends Comparable<T>> {
   /// ```dart
   /// assert(this._node?.right._node != null);
   /// ```
-  void _rotateCounterClockwise() {
+  /// # Возвращает
+  /// Новое дерево для смещённого с корня узла
+  RbIndexedTree<T> _rotateCounterClockwise() {
     assert(this._node?.right._node != null);
 
     final current = this;
@@ -270,13 +359,17 @@ class RbIndexedTree<T extends Comparable<T>> {
 
     childNode.length = currentNode.length;
     currentNode.length -= grandOuterChild.length + 1;
+
+    return newTree;
   }
 
   /// # Инварианты
   /// ```dart
   /// assert(this._node?.left._node != null);
   /// ```
-  void _rotateClockwise() {
+  /// # Возвращает
+  /// Новое дерево для смещённого с корня узла
+  RbIndexedTree<T> _rotateClockwise() {
     assert(this._node?.left._node != null);
 
     final current = this;
@@ -303,6 +396,8 @@ class RbIndexedTree<T extends Comparable<T>> {
 
     childNode.length = currentNode.length;
     currentNode.length -= grandOuterChild.length + 1;
+
+    return newTree;
   }
 
   /// Вывод дерева в JSON для отладки

@@ -39,7 +39,6 @@ class _RbIndexedNode<T extends Comparable<T>> {
 
     while (true) {
       var sibling = isCurrentLeft ? parentNode.right : parentNode.left;
-      if (sibling._node == null) break;
       var siblingNode = sibling._node as _RbIndexedNode<T>;
 
       var closeNephew = isCurrentLeft ? siblingNode.left : siblingNode.right;
@@ -47,50 +46,46 @@ class _RbIndexedNode<T extends Comparable<T>> {
 
       if (siblingNode.color == _Color.red) {
         // Case 3
-        final newParent = isCurrentLeft
+        parent = isCurrentLeft
             ? parent._rotateCounterClockwise()
             : parent._rotateClockwise();
-        sibling = parent;
-        parent = newParent;
 
         parentNode.color = _Color.red;
         siblingNode.color = _Color.black;
 
-        // sibling = closeNephew;
-        // siblingNode = closeNephew._node as _RbIndexedNode<T>;
-        // distantNephew = isCurrentLeft ? siblingNode.right : siblingNode.left;
-        // closeNephew = isCurrentLeft ? siblingNode.left : siblingNode.right;
+        sibling = closeNephew;
+        siblingNode = closeNephew._node as _RbIndexedNode<T>;
+        distantNephew = isCurrentLeft ? siblingNode.right : siblingNode.left;
+        closeNephew = isCurrentLeft ? siblingNode.left : siblingNode.right;
       }
 
       final closeNephewNode = closeNephew._node;
       if (closeNephewNode != null && closeNephewNode.color == _Color.red) {
-        //   // Case 5
-        //   if (isCurrentLeft) {
-        //     sibling._rotateClockwise();
-        //   } else {
-        //     sibling._rotateCounterClockwise();
-        //   }
+        // Case 5
+        final newSibling = isCurrentLeft
+            ? sibling._rotateClockwise()
+            : sibling._rotateCounterClockwise();
+        closeNephew = sibling;
+        sibling = newSibling;
 
-        //   siblingNode.color = _Color.red;
-        //   closeNephewNode.color = _Color.black;
+        siblingNode.color = _Color.red;
+        closeNephewNode.color = _Color.black;
 
-        //   distantNephew = sibling;
-        //   sibling = closeNephew;
-        //   siblingNode = sibling._node as _RbIndexedNode<T>;
+        distantNephew = sibling;
+        sibling = closeNephew;
+        siblingNode = sibling._node as _RbIndexedNode<T>;
       }
 
       final distantNephewNode = distantNephew._node;
       if (distantNephewNode != null && distantNephewNode.color == _Color.red) {
         // Case 6
-        // if (isCurrentLeft) {
-        //   parent._rotateCounterClockwise();
-        // } else {
-        //   parent._rotateClockwise();
-        // }
+        isCurrentLeft
+            ? parent._rotateCounterClockwise()
+            : parent._rotateClockwise();
 
-        // siblingNode.color = parentNode.color;
-        // parentNode.color = _Color.black;
-        // distantNephewNode.color = _Color.black;
+        siblingNode.color = parentNode.color;
+        parentNode.color = _Color.black;
+        distantNephewNode.color = _Color.black;
         break;
       }
 
@@ -351,11 +346,11 @@ class RbIndexedTree<T extends Comparable<T>> {
     currentNode.right = grandInnerChild;
     grandInnerChild._node?.parent = newTree;
 
-    childNode.left = newTree;
-    currentNode.parent = child;
-
     this._node = childNode;
     childNode.parent = parent;
+
+    childNode.left = newTree;
+    currentNode.parent = this;
 
     childNode.length = currentNode.length;
     currentNode.length -= grandOuterChild.length + 1;
@@ -388,11 +383,11 @@ class RbIndexedTree<T extends Comparable<T>> {
     currentNode.left = grandInnerChild;
     grandInnerChild._node?.parent = newTree;
 
-    childNode.right = newTree;
-    currentNode.parent = child;
-
     this._node = childNode;
     childNode.parent = parent;
+
+    childNode.right = newTree;
+    currentNode.parent = this;
 
     childNode.length = currentNode.length;
     currentNode.length -= grandOuterChild.length + 1;

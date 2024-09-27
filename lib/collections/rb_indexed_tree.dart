@@ -24,9 +24,9 @@ class _RbIndexedNode<T extends Comparable<T>> {
     }
   }
 
-  /// # Инварианты
-  /// Использовать на родителе удалённого бездетного чёрного узла.
-  void removeRebalance() {}
+  void removeRebalance() {
+    // TODO
+  }
 
   void insertRebalance() {
     var currentNode = this;
@@ -117,7 +117,7 @@ class RbIndexedTree<T extends Comparable<T>> {
 
   /// # Инварианты
   /// ```dart
-  /// assert(0 <= index && index < this.length);
+  /// assert(0 <= index && index < length);
   /// assert(this._treeByIndex(index).node != null);
   /// ```
   RbIndexedTree<T> _treeByIndex(int index) {
@@ -145,7 +145,7 @@ class RbIndexedTree<T extends Comparable<T>> {
 
   /// # Инварианты
   /// ```dart
-  /// assert(0 <= index < this.length);
+  /// assert(0 <= index < length);
   /// ```
   T operator [](int index) {
     return (_treeByIndex(index)._node as _RbIndexedNode<T>).value;
@@ -153,7 +153,7 @@ class RbIndexedTree<T extends Comparable<T>> {
 
   /// # Инварианты
   /// ```dart
-  /// assert(0 <= index < this.length);
+  /// assert(0 <= index < length);
   /// ```
   T pop(int index) {
     final tree = _treeByIndex(index);
@@ -164,23 +164,24 @@ class RbIndexedTree<T extends Comparable<T>> {
 
   /// # Инварианты
   /// ```dart
-  /// assert(0 <= index < this.length);
+  /// assert(0 <= index < length);
   /// ```
   void erase(int index) => _treeByIndex(index)._remove();
 
   /// # Инварианты
   /// ```dart
-  /// assert(this._node != null);
+  /// assert(this.node != null);
   /// ```
   void _remove() {
-    final node = this._node as _RbIndexedNode<T>;
+    var node = this._node as _RbIndexedNode<T>;
     switch ((node.left, node.right)) {
       case (RbIndexedTree<T>(_node: null), RbIndexedTree<T>(_node: null)):
-        this._node = null;
         final parent = node.parent._node;
-        if (parent == null) break;
-        parent.decrementLength();
-        if (node.color == _Color.black) parent.removeRebalance();
+        parent?.decrementLength();
+        if (node.color == _Color.black) {
+          node.removeRebalance();
+        }
+        this._node = null;
       case (
           RbIndexedTree<T>(_node: null),
           RbIndexedTree<T>(_node: _RbIndexedNode<T> childNode)
@@ -189,13 +190,12 @@ class RbIndexedTree<T extends Comparable<T>> {
           RbIndexedTree<T>(_node: _RbIndexedNode<T> childNode),
           RbIndexedTree<T>(_node: null)
         ):
-        // assert(childNode.color == _Color.red);
         childNode.color = _Color.black;
+        childNode.parent._node?.decrementLength();
 
         this._node = childNode;
         childNode.parent = node.parent;
-        childNode.parent._node?.decrementLength();
-      case (_, final right):
+      case (_, RbIndexedTree<T> right):
         var leftmost = right;
         while (true) {
           final left = (leftmost._node as _RbIndexedNode<T>).left;

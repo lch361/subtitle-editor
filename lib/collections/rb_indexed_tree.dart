@@ -352,6 +352,8 @@ class RbIndexedTree<T extends Comparable<T>> {
     childNode.left = newTree;
     currentNode.parent = this;
 
+    grandOuterChild._node?.parent = this;
+
     childNode.length = currentNode.length;
     currentNode.length -= grandOuterChild.length + 1;
 
@@ -388,6 +390,8 @@ class RbIndexedTree<T extends Comparable<T>> {
 
     childNode.right = newTree;
     currentNode.parent = this;
+
+    grandOuterChild._node?.parent = this;
 
     childNode.length = currentNode.length;
     currentNode.length -= grandOuterChild.length + 1;

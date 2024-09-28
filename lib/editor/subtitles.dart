@@ -23,6 +23,9 @@ class SubtitleTable {
   /// - Новый индекс вставленного субтитра
   /// - -1 если субтитр не был вставлен (переполнение или запрос на удаление)
   int insert(int index, EditFunction f) {
+    const maxLength = (1 << 63) - 1;
+    if (length == maxLength) return -1;
+
     final isIndexValid = 0 <= index && index < length;
     final time = isIndexValid ? this[index].end : Millis(0);
     final subtitle = Subtitle(time, time, "");

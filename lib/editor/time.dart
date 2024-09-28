@@ -1,34 +1,25 @@
+/// Целое, всегда положительное число, выражающее количество миллисекунд.
 class Millis implements Comparable<Millis> {
-  int ticks;
+  final int _ticks;
+  int get ticks => _ticks;
 
   /// # Инварианты
   /// ```dart
   /// assert(this.ticks >= 0);
   /// ```
-  Millis(this.ticks) {
+  Millis(this._ticks) {
     assert(ticks >= 0);
   }
+
+  Millis.clamp(int value) : _ticks = value < 0 ? 0 : value;
 
   @override
   int compareTo(Millis other) {
     return ticks.compareTo(other.ticks);
   }
 
-  Millis operator +(Millis other) {
-    const max = (1 << 64) - 1;
-
-    if (max - ticks < other.ticks) {
-      return Millis(max);
-    } else {
-      return Millis(ticks + other.ticks);
-    }
-  }
-
-  Millis operator -(Millis other) {
-    if (other.ticks > ticks) {
-      return Millis(0);
-    } else {
-      return Millis(ticks - other.ticks);
-    }
-  }
+  bool operator <(Millis other) => ticks < other.ticks;
+  bool operator >(Millis other) => ticks > other.ticks;
+  bool operator <=(Millis other) => ticks <= other.ticks;
+  bool operator >=(Millis other) => ticks >= other.ticks;
 }

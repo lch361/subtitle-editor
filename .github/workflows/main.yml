@@ -20,3 +20,18 @@ jobs:
          flutter-version: 3.24.2
       - name: Run tests
         run: flutter test
+      - name: Generate docs
+        run: dart doc
+      - name: Upload doc artifacts
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./doc/api"
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy GitHub pages
+        uses: actions/deploy-pages@v4
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}

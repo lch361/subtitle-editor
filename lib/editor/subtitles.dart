@@ -16,9 +16,9 @@ class SubtitleTable {
 
   int get length => _subtitleTree.length;
 
-  /// Вставить субтитр в таблицу на позицию после `index`,
+  /// Вставить субтитр в таблицу на позицию после [index],
   /// предварительно отредактировав.
-  /// Если `index` не в таблице, добавить субтитр в её начало.
+  /// Если [index] не в таблице, добавить субтитр в её начало.
   /// # Возвращает
   /// - Новый индекс вставленного субтитра
   /// - -1 если субтитр не был вставлен (переполнение или запрос на удаление)
@@ -33,7 +33,7 @@ class SubtitleTable {
     return isNotDeleted ? _subtitleTree.insert(subtitle) : -1;
   }
 
-  /// Отредактировать субтитр на позиции `index`.
+  /// Отредактировать субтитр на позиции [index].
   /// # Инварианты
   /// ```dart
   /// assert(0 <= index && index < this.length);
@@ -47,7 +47,7 @@ class SubtitleTable {
     return isNotDeleted ? _subtitleTree.insert(subtitle) : -1;
   }
 
-  /// Просмотреть субтитр на позиции `index`.
+  /// Просмотреть субтитр на позиции [index].
   /// # Инварианты
   /// ```dart
   /// assert(0 <= index && index < this.length);
@@ -79,7 +79,7 @@ class SubtitleEditor {
 }
 
 /// Субтитр, доступный лишь для чтения.
-/// Для редактирования нужно использовать класс `SubtitleEditor`.
+/// Для редактирования нужно использовать класс [SubtitleEditor].
 class Subtitle implements Comparable<Subtitle> {
   Millis _start, _end;
   String _text;

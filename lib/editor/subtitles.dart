@@ -10,9 +10,19 @@ import 'package:subtitle_editor/editor/time.dart';
 /// - `false` если субтитр нужно удалить
 typedef EditFunction = bool Function(SubtitleEditor);
 
+/// Функция импорта субтитров.
+/// # Параметры
+/// - [RandomAccessFile] всегда открыт на чтение.
+/// - Если хоть раз [Iterable]<[Result]<[Subtitle], [E]>> вернёт
+///   следующим элементом [Err]<[Subtitle], [E]>, то итерация заканчивается.
 typedef ImportFunction<E> = Iterable<Result<Subtitle, E>> Function(
     RandomAccessFile);
 
+/// Функция экспорта субтитров.
+/// # Параметры
+/// - [RandomAccessFile] всегда открыт на запись.
+/// - [Iterable]<[Subtitle]> - последовательность отсортированных по времени
+///   субтитров
 typedef ExportFunction = void Function(RandomAccessFile, Iterable<Subtitle>);
 
 /// Таблица субтитров, эффективная, упорядоченная и изменяемая.

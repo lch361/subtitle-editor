@@ -13,6 +13,8 @@ typedef EditFunction = bool Function(SubtitleEditor);
 typedef ImportFunction<E> = Iterable<Result<Subtitle, E>> Function(
     RandomAccessFile);
 
+typedef ExportFunction = void Function(RandomAccessFile, Iterable<Subtitle>);
+
 /// Таблица субтитров, эффективная, упорядоченная и изменяемая.
 class SubtitleTable {
   final _subtitleTree = RbIndexedTree<Subtitle>();
@@ -81,6 +83,19 @@ class SubtitleTable {
       rafile.closeSync();
     }
     return Ok(result);
+  }
+
+  /// Экспортировать субтитры в файл [file]
+  /// с помощью определённого форматировщика [f].
+  /// # Исключения
+  /// - [FileSystemException] при ошибке открытия, записи файла или закрытия
+  void export(File file, ExportFunction f) {
+    var rafile = file.openSync(mode: FileMode.writeOnly);
+    try {
+      f(rafile, _subtitleTree);
+    } finally {
+      rafile.closeSync();
+    }
   }
 }
 

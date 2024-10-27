@@ -190,12 +190,13 @@ class _RbIndexedNode<T extends Comparable<T>> {
   }
 }
 
-class RbIndexedTree<T extends Comparable<T>> {
+class RbIndexedTree<T extends Comparable<T>> with Iterable<T> {
   _RbIndexedNode<T>? _node;
 
   RbIndexedTree._withNode([this._node]);
   RbIndexedTree();
 
+  @override
   int get length => _node?.length ?? 0;
 
   /// # Инварианты
@@ -232,6 +233,11 @@ class RbIndexedTree<T extends Comparable<T>> {
   /// ```
   T operator [](int index) {
     return (_treeByIndex(index)._node as _RbIndexedNode<T>).value;
+  }
+
+  @override
+  Iterator<T> get iterator {
+    return Iterable.generate(this.length, (index) => this[index]).iterator;
   }
 
   /// # Инварианты

@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:subtitle_editor/collections/rb_indexed_tree.dart';
+import 'package:subtitle_editor/collections/result.dart';
 import 'package:subtitle_editor/editor/time.dart';
 
 /// Функция редактирования субтитра.
@@ -6,6 +9,21 @@ import 'package:subtitle_editor/editor/time.dart';
 /// - `true` если субтитр успешно отредактирован
 /// - `false` если субтитр нужно удалить
 typedef EditFunction = bool Function(SubtitleEditor);
+
+/// Функция импорта субтитров.
+/// # Параметры
+/// - [RandomAccessFile] всегда открыт на чтение.
+/// - Если хоть раз [Iterable]<[Result]<[Subtitle], [E]>> вернёт
+///   следующим элементом [Err]<[Subtitle], [E]>, то итерация заканчивается.
+typedef ImportFunction<E> = Iterable<Result<Subtitle, E>> Function(
+    RandomAccessFile);
+
+/// Функция экспорта субтитров.
+/// # Параметры
+/// - [RandomAccessFile] всегда открыт на запись.
+/// - [Iterable]<[Subtitle]> - последовательность отсортированных по времени
+///   субтитров
+typedef ExportFunction = void Function(RandomAccessFile, Iterable<Subtitle>);
 
 /// Таблица субтитров, эффективная, упорядоченная и изменяемая.
 class SubtitleTable {
@@ -53,6 +71,42 @@ class SubtitleTable {
   /// assert(0 <= index && index < this.length);
   /// ```
   Subtitle operator [](int index) => _subtitleTree[index];
+
+  /// Импортировать субтитры из файла [file]
+  /// с помощью определённого форматировщика [f].
+  /// # Исключения
+  /// - [FileSystemException] при ошибке открытия, чтения файла или закрытия
+  static Result<SubtitleTable, E> import<E>(File file, ImportFunction<E> f) {
+    var result = SubtitleTable();
+
+    var rafile = file.openSync(mode: FileMode.read);
+    try {
+      for (final x in f(rafile)) {
+        switch (x) {
+          case Ok(value: final s):
+            result._subtitleTree.insert(s);
+          case Err(value: final e):
+            return Err(e);
+        }
+      }
+    } finally {
+      rafile.closeSync();
+    }
+    return Ok(result);
+  }
+
+  /// Экспортировать субтитры в файл [file]
+  /// с помощью определённого форматировщика [f].
+  /// # Исключения
+  /// - [FileSystemException] при ошибке открытия, записи файла или закрытия
+  void export(File file, ExportFunction f) {
+    var rafile = file.openSync(mode: FileMode.writeOnly);
+    try {
+      f(rafile, _subtitleTree);
+    } finally {
+      rafile.closeSync();
+    }
+  }
 }
 
 /// Редактор субтитра, не допускающий нарушения инвариантов.

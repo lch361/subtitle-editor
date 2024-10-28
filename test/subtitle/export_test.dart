@@ -76,6 +76,7 @@ void main() {
 
   test('SubRip', () {
     final file = fs.file("/sample.srt");
+    expect(file.existsSync(), false);
     table.export(file, srt.export);
 
     final result = file.readAsStringSync();

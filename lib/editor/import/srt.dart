@@ -35,6 +35,7 @@ Result<String?, int> _readLineUtf8(RandomAccessFile file) {
     var codepoint = file.readByteSync();
     switch (codepoint) {
       case -1:
+        return Ok(buf.isEmpty ? null : buf.toString());
       case newline:
         break outer;
     }

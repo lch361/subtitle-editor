@@ -30,7 +30,7 @@ void export(RandomAccessFile file, Iterable<Subtitle> subs) {
       file.writeByteSync(newline);
     }
 
-    file.writeStringSync(i.toString());
+    file.writeStringSync((i + 1).toString());
     file.writeByteSync(newline);
 
     _writeTime(file, v.start.format());

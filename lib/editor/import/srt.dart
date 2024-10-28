@@ -14,6 +14,11 @@ class MalformedSubRip {
   MalformedSubRipCause cause;
 
   MalformedSubRip(this.lineNumber, this.colNumber, this.cause);
+
+  @override
+  String toString() {
+    return "$lineNumber:$colNumber - $cause";
+  }
 }
 
 int _readSubsequentByteUtf8(RandomAccessFile file) {

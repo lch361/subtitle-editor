@@ -67,8 +67,38 @@ Result<String?, int> _readLineUtf8(RandomAccessFile file) {
       : (v.substring(0, result), v.substring(result + 5));
 }
 
+int? _parseTimeNumber(String s, {int digits = 2}) {
+  if (s.length != digits) return null;
+  final result = int.tryParse(s);
+  if (result == null || result < 0) {
+    return null;
+  }
+  return result;
+}
+
 Millis? _parseTime(String s) {
-  throw UnimplementedError;
+  final numberStrs = s.split(":");
+  if (numberStrs.length != 3) return null;
+  final hours = _parseTimeNumber(numberStrs[0]);
+  final minutes = _parseTimeNumber(numberStrs[1]);
+
+  final lastNumberStrs = numberStrs[2].split(",");
+  if (lastNumberStrs.length != 2) return null;
+  final seconds = _parseTimeNumber(lastNumberStrs[0]);
+  final milliseconds = _parseTimeNumber(lastNumberStrs[1], digits: 3);
+
+  if (hours == null ||
+      minutes == null ||
+      seconds == null ||
+      milliseconds == null) {
+    return null;
+  }
+  var result = hours;
+  result = result * 60 + minutes;
+  result = result * 60 + seconds;
+  result = result * 1000 + milliseconds;
+
+  return Millis(result);
 }
 
 Result<(Millis, Millis), int> _parseTimes(String line) {

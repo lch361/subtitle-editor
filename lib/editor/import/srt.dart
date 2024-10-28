@@ -179,6 +179,8 @@ Iterable<Result<Subtitle, MalformedSubRip>> import(
     var textNewline = false;
     text:
     while (true) {
+      final errLine = line;
+      line = errLine + 1;
       switch (_readLineUtf8(file)) {
         case Ok(value: null):
         case Ok(value: ""):
@@ -190,7 +192,7 @@ Iterable<Result<Subtitle, MalformedSubRip>> import(
           text.write(textLine);
           textNewline = true;
         case Err(value: final e):
-          yield Err(MalformedSubRip(line, e, MalformedSubRipCause.encoding));
+          yield Err(MalformedSubRip(errLine, e, MalformedSubRipCause.encoding));
           break outer;
       }
     }

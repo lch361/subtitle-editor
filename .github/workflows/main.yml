@@ -7,7 +7,7 @@ on:
     branches: ["main"]
 
 jobs:
-  setup:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Clone the repository
@@ -15,18 +15,20 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-         channel: stable
-         flutter-version: 3.24.2
-  test:
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
+          channel: stable
+          flutter-version: 3.24.2
       - name: Run tests
         run: flutter test
   doc:
     runs-on: ubuntu-latest
-    needs: setup
     steps:
+      - name: Clone the repository
+        uses: actions/checkout@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.24.2
       - name: Generate docs
         run: dart doc
       - name: Upload doc artifacts
@@ -35,8 +37,14 @@ jobs:
           path: "./doc/api"
   format:
     runs-on: ubuntu-latest
-    needs: setup
     steps:
+      - name: Clone the repository
+        uses: actions/checkout@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.24.2
       - name: Check code format
         run: dart format --set-exit-if-changed -o none lib
   deploy:

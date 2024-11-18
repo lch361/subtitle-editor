@@ -7,9 +7,8 @@ on:
     branches: ["main"]
 
 jobs:
-  build:
+  setup:
     runs-on: ubuntu-latest
-
     steps:
       - name: Clone the repository
         uses: actions/checkout@v4
@@ -18,17 +17,31 @@ jobs:
         with:
          channel: stable
          flutter-version: 3.24.2
+  test:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
       - name: Run tests
         run: flutter test
+  doc:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
       - name: Generate docs
         run: dart doc
       - name: Upload doc artifacts
         uses: actions/upload-pages-artifact@v3
         with:
           path: "./doc/api"
+  format:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Check code format
+        run: dart format --set-exit-if-changed -o none lib
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    needs: doc
     permissions:
       pages: write
       id-token: write

@@ -8,7 +8,7 @@ import 'package:file_picker/file_picker.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  // Обязательная инициализации пакета media kit
+  // Обязательная инициализация пакета media kit
   MediaKit.ensureInitialized();
   runApp(const MyApp());
 }
@@ -40,13 +40,13 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Subtitle Editor Demo Home Page'), //Прямо тут можно задать новое имя, передаётся в строке 40
+      home: const MyHomePage(title: 'Subtitle Editor Demo Home Page'), //Прямо тут можно задать новое имя, передаётся в [MyHomePage()]
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title}); //А здесь имя запрашивается, передаётся в строке 34
+  const MyHomePage({super.key, required this.title}); //А здесь имя запрашивается, передаётся в поле [MaterialApp.home]
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -87,7 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
     String _videofilePath = result.files.single.path!;
     print(_videofilePath);
     player.open(Media(_videofilePath));
-     setState(() {});
+    setState(() {});
    } else {
      // User canceled the picker
      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -162,16 +162,15 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: 
-      Row( //Тело, разделённое по колонкам
-      children: [
+      body: Row( //Тело, разделённое по колонкам
+        children: [
         
         Column(children: [
           
           SizedBox( // Коробка под видео
             width: MediaQuery.sizeOf(context).width * 0.7,
             //width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.width * 0.7 * 9.0 / 16.0,
+            height: MediaQuery.of(context).size.width * 0.7 * RATIO,
             // Use [Video] widget to display video output.
             child: Video(controller: controller),
           ),
@@ -204,7 +203,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 height: 120,
                 child: FloatingActionButton(
                   onPressed: getFileSubtitle,
-                  tooltip: 'Choose video file',
+                  tooltip: 'Choose subtitle file',
                   child: const Icon(Icons.text_snippet_rounded),
                 ),
               ),
@@ -216,43 +215,6 @@ class _MyHomePageState extends State<MyHomePage> {
         ],),
 
 
-        //   child: Column(
-        //   // Column is also a layout widget. It takes a list of children and
-        //   // arranges them vertically. By default, it sizes itself to fit its
-        //   // children horizontally, and tries to be as tall as its parent.
-        //   //
-        //   // Column has various properties to control how it sizes itself and
-        //   // how it positions its children. Here we use mainAxisAlignment to
-        //   // center the children vertically; the main axis here is the vertical
-        //   // axis because Columns are vertical (the cross axis would be
-        //   // horizontal).
-        //   //
-        //   // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-        //   // action in the IDE, or press "p" in the console), to see the
-        //   // wireframe for each widget.
-        //   //mainAxisAlignment: MainAxisAlignment.start,
-        //   children: <Widget>[
-        //     SizedBox(
-        //       width: MediaQuery.of(context).size.width,
-        //       height: MediaQuery.of(context).size.width * 9.0 / 16.0,
-        //       // Use [Video] widget to display video output.
-        //       child: Video(controller: controller),
-        //     ),
-        //     // Text(
-        //     //   '$_counter',
-        //     //   style: Theme.of(context).textTheme.headlineMedium,
-        //     // ),
-        //     // SizedBox(
-        //     //   width: 120,
-        //     //   height: 120,
-        //     //   child: FloatingActionButton(
-        //     //     onPressed: _incrementCounter,
-        //     //     tooltip: 'Increment',
-        //     //     child: const Icon(Icons.add),
-        //     //   ),
-        //     // ),
-        //   ],
-        // ),
         Container(width: 5, color: Colors.black),
         Expanded(
           child: ListView.builder( //Субтитры

@@ -12,9 +12,9 @@ const RATIO = 9.0 / 16.0;
 const playerPortion = 0.7;
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
   // Обязательная инициализация пакета media kit
   MediaKit.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -82,39 +82,40 @@ class _MyHomePageState extends State<MyHomePage> {
   late String? _file_sub_path;
 
   void getFileVideo() async {
-   
-   FilePickerResult? result = await FilePicker.platform.pickFiles(
+  
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
     type: FileType.video,
-   );
+    );
  
-   if (result != null) {
-    String _videofilePath = result.files.single.path as String;
-    _file_video_path = _videofilePath;
-    player.open(Media(_videofilePath));
-    setState(() {});
-   } else {
-     // User canceled the picker
-     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-       content: Text('Please select video file'),
-     ));
-   }
- }
+    if (result != null) {
+      String _videofilePath = result.files.single.path as String;
+      _file_video_path = _videofilePath;
+      player.open(Media(_videofilePath));
+      setState(() {});
+    } else {
+      // User canceled the picker
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Please select video file'),
+      ));
+    }
+  }
 
- void getFileSubtitle() async {
-   FilePickerResult? result = await FilePicker.platform.pickFiles(
-    type: FileType.custom,
-    allowedExtensions: ['txt', 'srt'],
-   );
+  void getFileSubtitle() async {
+    
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['txt', 'srt'],
+    );
  
-   if (result != null) {
-    _file_sub_path = result.files.single.path as String;
-    setState(() {});
-   } else {
-     // User canceled the picker
-     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-       content: Text('Please select subtitle file'),
-     ));
-   }
+    if (result != null) {
+      _file_sub_path = result.files.single.path as String;
+      setState(() {});
+    } else {
+      // User canceled the picker
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Please select subtitle file'),
+      ));
+    }
   }
 
   ///////////////////////////////////////////////////
@@ -156,6 +157,7 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
         
         Column(children: [
+          
           SizedBox( // Коробка под видео
             width: MediaQuery.sizeOf(context).width * playerPortion,
             //width: MediaQuery.of(context).size.width,
@@ -164,12 +166,17 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Video(controller: controller),
           ),
 
+          SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.01,
+          ),
+
           Row( // Для кнопок нужно разделить пространство по столбикам
             children: [
 
+              // Кнопка со временем
               SizedBox(
-                width: 120,
-                height: 120,
+                width: MediaQuery.sizeOf(context).width * 0.06,
+                height: MediaQuery.sizeOf(context).width * 0.06,
                 child: FloatingActionButton(
                   onPressed: _tellTime,
                   tooltip: 'Tells the time',
@@ -178,8 +185,13 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
 
               SizedBox(
-                width: 120,
-                height: 120,
+                width: MediaQuery.sizeOf(context).width * 0.02, // Помним, 0,7 отведено под плеер
+              ),
+
+              // Кнопка выбора видеофайла
+              SizedBox(
+                width: MediaQuery.sizeOf(context).width * 0.06,
+                height: MediaQuery.sizeOf(context).width * 0.06,
                 child: FloatingActionButton(
                   onPressed: getFileVideo,
                   tooltip: 'Choose video file',
@@ -188,8 +200,13 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
 
               SizedBox(
-                width: 120,
-                height: 120,
+                width: MediaQuery.sizeOf(context).width * 0.02, // Помним, 0,7 отведено под плеер
+              ),
+
+              // Кнопка выбора файла субтитров
+              SizedBox(
+                width: MediaQuery.sizeOf(context).width * 0.06,
+                height: MediaQuery.sizeOf(context).width * 0.06,
                 child: FloatingActionButton(
                   onPressed: getFileSubtitle,
                   tooltip: 'Choose subtitle file',

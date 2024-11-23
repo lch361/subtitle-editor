@@ -6,6 +6,11 @@ import 'package:media_kit/media_kit.dart';                      // Provides [Pla
 import 'package:media_kit_video/media_kit_video.dart';          // Provides [VideoController] & [Video] etc.
 import 'package:file_picker/file_picker.dart';
 
+// Размер проигрывателя - 16 на 9
+const RATIO = 9.0 / 16.0;
+// Часть экрана (окна), отведённая под плеер 
+const playerPortion = 0.7;
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   // Обязательная инициализация пакета media kit
@@ -64,7 +69,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
 
   /////////////////////////////////////////////
   // Создаём плеер и управление плейером
@@ -74,24 +78,24 @@ class _MyHomePageState extends State<MyHomePage> {
   late VideoController controller = VideoController(player);
 
   // Выбранный файл-видео
-  late File? _file_video;
-  late File? _file_sub;
+  late String? _file_video_path;
+  late String? _file_sub_path;
 
   void getFileVideo() async {
+   
    FilePickerResult? result = await FilePicker.platform.pickFiles(
     type: FileType.video,
-    //allowedExtensions: ['mp4', 'mov', 'avi', 'wmv'],
    );
  
    if (result != null) {
-    String _videofilePath = result.files.single.path!;
-    print(_videofilePath);
+    String _videofilePath = result.files.single.path as String;
+    _file_video_path = _videofilePath;
     player.open(Media(_videofilePath));
     setState(() {});
    } else {
      // User canceled the picker
      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-       content: Text('Файл не выбран'),
+       content: Text('Please select video file'),
      ));
    }
  }
@@ -103,28 +107,14 @@ class _MyHomePageState extends State<MyHomePage> {
    );
  
    if (result != null) {
-    _file_sub = File(result.files.single.path!);
+    _file_sub_path = result.files.single.path as String;
     setState(() {});
    } else {
      // User canceled the picker
-     // You can show snackbar or fluttertoast
-     // here like this to show warning to user
-     // ignore: use_build_context_synchronously
      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-       content: Text('Please select file'),
+       content: Text('Please select subtitle file'),
      ));
    }
-  }
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
   }
 
   ///////////////////////////////////////////////////
@@ -166,11 +156,10 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
         
         Column(children: [
-          
           SizedBox( // Коробка под видео
-            width: MediaQuery.sizeOf(context).width * 0.7,
+            width: MediaQuery.sizeOf(context).width * playerPortion,
             //width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.width * 0.7 * RATIO,
+            height: MediaQuery.of(context).size.width * playerPortion * RATIO,
             // Use [Video] widget to display video output.
             child: Video(controller: controller),
           ),
@@ -209,15 +198,13 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
 
             ],
-            
           ),
-
         ],),
 
 
         Container(width: 5, color: Colors.black),
         Expanded(
-          child: ListView.builder( //Субтитры
+          child: ListView.builder( // Построитель списка для субтитров
             itemCount: 10, //Здесь будет количество субтитров
             itemBuilder: (context, i) => ListTile(
             title: Text('0:00:05 - 00:10:20'),
@@ -228,52 +215,5 @@ class _MyHomePageState extends State<MyHomePage> {
       ],
       ),
     );
-    
-    /*return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body:
-      Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );*/
   }
 }

@@ -6,17 +6,33 @@ import 'package:media_kit/media_kit.dart'; // Provides [Player], [Media], [Playl
 import 'package:media_kit_video/media_kit_video.dart'; // Provides [VideoController] & [Video] etc.
 import 'package:file_picker/file_picker.dart';
 
+import 'package:subtitle_editor/editor/subtitles.dart';
+// import 'package:subtitle_editor/editor/time.dart';
+import 'package:subtitle_editor/editor/import/srt.dart' as srt;
+// import 'package:subtitle_editor/editor/export/srt.dart' as srt;
+import 'package:subtitle_editor/collections/result.dart';
+
 // Размер проигрывателя - 16 на 9
 const RATIO = 9.0 / 16.0;
 // Часть экрана (окна), отведённая под плеер
 const playerPortion = 0.7;
 
+// void main() {
+//   // Обязательная инициализация пакета media kit
+//   MediaKit.ensureInitialized();
+//   WidgetsFlutterBinding.ensureInitialized();
+//   runApp(const MyApp());
+// }
+
 void main() {
-  // Обязательная инициализация пакета media kit
-  MediaKit.ensureInitialized();
+  
+
   WidgetsFlutterBinding.ensureInitialized();
+  // Обязательная инициализации пакета media kit
+  MediaKit.ensureInitialized();
   runApp(const MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -84,6 +100,9 @@ class _MyHomePageState extends State<MyHomePage> {
   late String? _file_video_path;
   late String? _file_sub_path;
 
+  var subs = SubtitleTable();
+  List<Subtitle> subtits = [];
+  
   void getFileVideo() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.video,
@@ -110,6 +129,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (result != null) {
       _file_sub_path = result.files.single.path as String;
+      print(_file_sub_path);
+      build.call(context);
       setState(() {});
     } else {
       // User canceled the picker
@@ -124,6 +145,18 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    // var subs = SubtitleTable();
+    switch (SubtitleTable.import(File('test_subs/HS_StarTrekLowerDecks_s05e06_AMZN_FLUX.srt'), srt.import)) {
+      case Ok(value: final v):
+        subs = v;
+        print("Импорт произошёл");
+        for (int i = 0; i < subs.length; i++){
+          setState(() { subtits.add(subs[i]);});
+        }
+      case Err(value: final e):
+        print(e);
+        print("Импорт не свершился");
+      }
     // Play a [Media] or [Playlist].
     player.open(Media(
         'https://user-images.githubusercontent.com/28951144/229373695-22f88f13-d18f-4288-9bf1-c3e078d83722.mp4'));
@@ -154,6 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+        
       ),
       body: Row(
         //Тело, разделённое по колонкам
@@ -225,10 +259,10 @@ class _MyHomePageState extends State<MyHomePage> {
           Expanded(
             child: ListView.builder(
               // Построитель списка для субтитров
-              itemCount: 10, //Здесь будет количество субтитров
+              itemCount: 100, //Здесь будет количество субтитров
               itemBuilder: (context, i) => ListTile(
-                title: Text('0:00:05 - 00:10:20'),
-                subtitle: Text('Ты спас меня, теперь я должен тебе'),
+                title: Text("${subtits[i].start.hours}:${subtits[i].start.minutes}:${subtits[i].start.seconds},${subtits[i].start.format().millisecond} - ${subtits[i].end.hours}:${subtits[i].end.minutes}:${subtits[i].end.seconds},${subtits[i].end.format().millisecond}"),
+                subtitle: Text(subtits[i].text),
               ),
             ),
           ),

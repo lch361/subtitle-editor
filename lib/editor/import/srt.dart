@@ -41,14 +41,17 @@ Result<String?, int> _readLineUtf8(RandomAccessFile file) {
     }
 
     if (codepoint & 0xE0 == 0xC0) {
+      codepoint &= 0x1F;
       final second = _readSubsequentByteUtf8(file);
       codepoint = second != -1 ? codepoint << 6 | second : -1;
     } else if (codepoint & 0xF0 == 0xE0) {
+      codepoint &= 0xF;
       for (var i = 0; i < 2 && codepoint != -1; ++i) {
         final second = _readSubsequentByteUtf8(file);
         codepoint = second != -1 ? codepoint << 6 | second : -1;
       }
     } else if (codepoint & 0xF8 == 0xF0) {
+      codepoint &= 0x7;
       for (var i = 0; i < 3 && codepoint != -1; ++i) {
         final second = _readSubsequentByteUtf8(file);
         codepoint = second != -1 ? codepoint << 6 | second : -1;

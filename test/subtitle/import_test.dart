@@ -6,48 +6,30 @@ import 'package:subtitle_editor/editor/time.dart';
 
 import 'package:subtitle_editor/editor/import/srt.dart' as srt;
 
-SubtitleTable expectation() {
+SubtitleTable tableFromList(Iterable<Subtitle> subs) {
   var result = SubtitleTable();
-
-  result.insert(-1, (editor) {
-    editor.start = Millis(136612);
-    editor.end = Millis(139376);
-    editor.text = "Senator, we're making\nour final approach into Coruscant.";
-    return true;
-  });
-
-  result.insert(-1, (editor) {
-    editor.start = Millis(139482);
-    editor.end = Millis(141609);
-    editor.text = "Very good, Lieutenant.";
-    return true;
-  });
-
-  result.insert(-1, (editor) {
-    editor.start = Millis(193336);
-    editor.end = Millis(195167);
-    editor.text = "We made it.";
-    return true;
-  });
-
-  result.insert(-1, (editor) {
-    editor.start = Millis(198608);
-    editor.end = Millis(200371);
-    editor.text = "I guess I was wrong.";
-    return true;
-  });
-
-  result.insert(-1, (editor) {
-    editor.start = Millis(200476);
-    editor.end = Millis(202671);
-    editor.text = "There was no danger at all.";
-    return true;
-  });
-
+  for (final sub in subs) {
+    result.insert(-1, (editor) {
+      editor.start = sub.start;
+      editor.end = sub.end;
+      editor.text = sub.text;
+      return true;
+    });
+  }
   return result;
 }
 
-const sampleSrt = '''
+void expectTablesEqual(SubtitleTable a, SubtitleTable b) {
+  expect(a.length, b.length);
+  for (var i = 0; i < a.length; ++i) {
+    final subtitleA = a[i], subtitleB = b[i];
+    final tupleA = (subtitleA.start.ticks, subtitleA.end.ticks, subtitleA.text);
+    final tupleB = (subtitleB.start.ticks, subtitleB.end.ticks, subtitleB.text);
+    expect(tupleA, tupleB);
+  }
+}
+
+const sampleEnSrt = '''
 1
 00:02:16,612 --> 00:02:19,376
 Senator, we're making
@@ -70,32 +52,73 @@ I guess I was wrong.
 There was no danger at all.
 ''';
 
-void expectTablesEqual(SubtitleTable a, SubtitleTable b) {
-  expect(a.length, b.length);
-  for (var i = 0; i < a.length; ++i) {
-    final subtitleA = a[i], subtitleB = b[i];
-    final tupleA = (subtitleA.start.ticks, subtitleA.end.ticks, subtitleA.text);
-    final tupleB = (subtitleB.start.ticks, subtitleB.end.ticks, subtitleB.text);
-    expect(tupleA, tupleB);
+const sampleRuSrt = '''
+425
+00:18:21,160 --> 00:18:22,599
+Знаю, мы с Олли насрали на кровать,
+
+426
+00:18:22,600 --> 00:18:24,500
+и всё же дай нам шанс сменить простыни.
+
+427
+00:18:24,600 --> 00:18:26,270
+Это метафора.
+
+428
+00:18:26,370 --> 00:18:27,170
+И плохая.
+
+429
+00:18:27,300 --> 00:18:28,700
+Ей дали слишком много шансов.
+''';
+
+void testImport(String src, SubtitleTable expect, ImportFunction f) {
+  var fs = MemoryFileSystem();
+  final file = fs.file("/sample.srt");
+  file.writeAsStringSync(src);
+
+  final SubtitleTable result;
+  switch (SubtitleTable.import(file, f)) {
+    case Ok(value: final v):
+      result = v;
+    case Err(value: final e):
+      fail("Import failed with this error: $e");
   }
+  expectTablesEqual(result, expect);
 }
 
 void main() {
-  var fs = MemoryFileSystem();
+  group('English', () {
+    final table = tableFromList([
+      Subtitle(Millis(136612), Millis(139376),
+          "Senator, we're making\nour final approach into Coruscant."),
+      Subtitle(Millis(139482), Millis(141609), "Very good, Lieutenant."),
+      Subtitle(Millis(193336), Millis(195167), "We made it."),
+      Subtitle(Millis(198608), Millis(200371), "I guess I was wrong."),
+      Subtitle(Millis(200476), Millis(202671), "There was no danger at all."),
+    ]);
 
-  final table = expectation();
+    test('SubRip', () {
+      testImport(sampleEnSrt, table, srt.import);
+    });
+  });
 
-  test('SubRip', () {
-    final file = fs.file("/sample.srt");
-    file.writeAsStringSync(sampleSrt);
+  group('Russian', () {
+    final table = tableFromList([
+      Subtitle(Millis(1101160), Millis(1102599),
+          "Знаю, мы с Олли насрали на кровать,"),
+      Subtitle(Millis(1102600), Millis(1104500),
+          "и всё же дай нам шанс сменить простыни."),
+      Subtitle(Millis(1104600), Millis(1106270), "Это метафора."),
+      Subtitle(Millis(1106370), Millis(1107170), "И плохая."),
+      Subtitle(
+          Millis(1107300), Millis(1108700), "Ей дали слишком много шансов."),
+    ]);
 
-    final SubtitleTable result;
-    switch (SubtitleTable.import(file, srt.import)) {
-      case Ok(value: final v):
-        result = v;
-      case Err(value: final e):
-        fail("Import failed with this error: $e");
-    }
-    expectTablesEqual(result, table);
+    test('SubRip', () {
+      testImport(sampleRuSrt, table, srt.import);
+    });
   });
 }

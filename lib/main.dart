@@ -7,9 +7,9 @@ import 'package:media_kit_video/media_kit_video.dart'; // Provides [VideoControl
 import 'package:file_picker/file_picker.dart';
 
 import 'package:subtitle_editor/editor/subtitles.dart';
-// import 'package:subtitle_editor/editor/time.dart';
+import 'package:subtitle_editor/editor/time.dart';
 import 'package:subtitle_editor/editor/import/srt.dart' as srt;
-// import 'package:subtitle_editor/editor/export/srt.dart' as srt;
+import 'package:subtitle_editor/editor/export/srt.dart' as srt;
 import 'package:subtitle_editor/collections/result.dart';
 
 // Размер проигрывателя - 16 на 9
@@ -17,16 +17,7 @@ const RATIO = 9.0 / 16.0;
 // Часть экрана (окна), отведённая под плеер
 const playerPortion = 0.7;
 
-// void main() {
-//   // Обязательная инициализация пакета media kit
-//   MediaKit.ensureInitialized();
-//   WidgetsFlutterBinding.ensureInitialized();
-//   runApp(const MyApp());
-// }
-
 void main() {
-  
-
   WidgetsFlutterBinding.ensureInitialized();
   // Обязательная инициализации пакета media kit
   MediaKit.ensureInitialized();
@@ -99,10 +90,11 @@ class _MyHomePageState extends State<MyHomePage> {
   // Выбранный файл-видео
   late String? _file_video_path;
   late String? _file_sub_path;
-
+  
   var subs = SubtitleTable();
   List<Subtitle> subtits = [];
-  
+
+  // импорт видео в программу
   void getFileVideo() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.video,
@@ -121,6 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // импорт субтитров в таблицу
   void getFileSubtitle() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -132,12 +125,28 @@ class _MyHomePageState extends State<MyHomePage> {
       print(_file_sub_path);
       build.call(context);
       setState(() {});
+      switch (SubtitleTable.import(File(_file_sub_path.toString()), srt.import)) {
+        case Ok(value: final v):
+          subs = v;
+          subtits = [];
+          print("Файл субтитров загрузился");
+          for (int i = 0; i < subs.length; i++){
+            setState(() {
+              subtits.add(subs[i]);
+              });
+          }
+        case Err(value: final e):
+          print(e);
+          print("Ошибка при загрузке файла - возможно, не тот тип файла");
+        }
     } else {
       // User canceled the picker
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Please select subtitle file'),
       ));
     }
+
+
   }
 
   ///////////////////////////////////////////////////
@@ -145,17 +154,18 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    // var subs = SubtitleTable();
+    
+    // тестовый импорт вначале
     switch (SubtitleTable.import(File('test_subs/HS_StarTrekLowerDecks_s05e06_AMZN_FLUX.srt'), srt.import)) {
       case Ok(value: final v):
         subs = v;
-        print("Импорт произошёл");
+        print("Файл субтитров прошёл");
         for (int i = 0; i < subs.length; i++){
-          setState(() { subtits.add(subs[i]);});
+          setState(() { subtits.add(subs[i]); });
         }
       case Err(value: final e):
         print(e);
-        print("Импорт не свершился");
+        print("Ошибка импорта субтитров");
       }
     // Play a [Media] or [Playlist].
     player.open(Media(
@@ -259,7 +269,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Expanded(
             child: ListView.builder(
               // Построитель списка для субтитров
-              itemCount: 100, //Здесь будет количество субтитров
+              itemCount: subtits.length, // количество субтитров
               itemBuilder: (context, i) => ListTile(
                 title: Text("${subtits[i].start.hours}:${subtits[i].start.minutes}:${subtits[i].start.seconds},${subtits[i].start.format().millisecond} - ${subtits[i].end.hours}:${subtits[i].end.minutes}:${subtits[i].end.seconds},${subtits[i].end.format().millisecond}"),
                 subtitle: Text(subtits[i].text),

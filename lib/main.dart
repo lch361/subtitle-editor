@@ -12,6 +12,7 @@ import 'package:subtitle_editor/editor/import/srt.dart' as srt;
 import 'package:subtitle_editor/editor/export/srt.dart' as srt;
 import 'package:subtitle_editor/collections/result.dart';
 
+
 // Размер проигрывателя - 16 на 9
 const RATIO = 9.0 / 16.0;
 // Часть экрана (окна), отведённая под плеер
@@ -86,13 +87,18 @@ class _MyHomePageState extends State<MyHomePage> {
   late Player player = Player();
   // Create a [VideoController] to handle video output from [Player].
   late VideoController controller = VideoController(player);
+  late SubtitleTrack subtitle = player.state.track.subtitle;
+
+
+  final ScrollController _controller2 = ScrollController();
+ 
 
   // Выбранный файл-видео
   late String? _file_video_path;
   late String? _file_sub_path;
-  
+
   var subs = SubtitleTable();
-  List<Subtitle> subtits = [];
+  // List<Subtitle> subtits = [];
 
   // импорт видео в программу
   void getFileVideo() async {
@@ -122,19 +128,19 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (result != null) {
       _file_sub_path = result.files.single.path as String;
+      player.setSubtitleTrack(SubtitleTrack.uri(_file_sub_path.toString()));
+      subs.export(File("auto.srt"), srt.export);
+
+      setState(() {});
       print(_file_sub_path);
       build.call(context);
       setState(() {});
       switch (SubtitleTable.import(File(_file_sub_path.toString()), srt.import)) {
         case Ok(value: final v):
           subs = v;
-          subtits = [];
+          print(subs[0].text);
+          setState(() { });
           print("Файл субтитров загрузился");
-          for (int i = 0; i < subs.length; i++){
-            setState(() {
-              subtits.add(subs[i]);
-              });
-          }
         case Err(value: final e):
           print(e);
           print("Ошибка при загрузке файла - возможно, не тот тип файла");
@@ -145,7 +151,7 @@ class _MyHomePageState extends State<MyHomePage> {
         content: Text('Please select subtitle file'),
       ));
     }
-
+  
 
   }
 
@@ -159,10 +165,8 @@ class _MyHomePageState extends State<MyHomePage> {
     switch (SubtitleTable.import(File('test_subs/HS_StarTrekLowerDecks_s05e06_AMZN_FLUX.srt'), srt.import)) {
       case Ok(value: final v):
         subs = v;
+        setState(() { });
         print("Файл субтитров прошёл");
-        for (int i = 0; i < subs.length; i++){
-          setState(() { subtits.add(subs[i]); });
-        }
       case Err(value: final e):
         print(e);
         print("Ошибка импорта субтитров");
@@ -177,12 +181,79 @@ class _MyHomePageState extends State<MyHomePage> {
     player.dispose();
     super.dispose();
   }
-
   void _tellTime() {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text("Video is on ${player.state.position}"),
+      duration: Duration(milliseconds: 400,),
     ));
-    //print(player.state.position);
+    print(_controller2);
+    for (var i = 0; i < subs.length - 1; i++) {
+      if (subs[i].start.ticks < player.state.position.inMilliseconds && player.state.position.inMilliseconds < subs[i + 1].start.ticks) {
+        print("ОН ТУТ ВИДЕТ");
+        _controller2.jumpTo(90.0 * (i + 1));
+      }
+    }
+  }
+
+  void EditLine(final value, int index) {
+    subs[index];
+    print("-=-= Отредактирован =-=-");
+    subs.edit(index, (editor) {
+      editor.text = value;
+      return true;
+    });
+    print(subs[index].text);
+  }
+  int editindex = -2;
+
+  void setStartTime() {
+    print("start: ${player.state.position}");
+    if (editindex == -2) {
+    int ind = subs.insert(-1, (editor) {
+        editor.text = "";
+        editor.start = Millis(player.state.position.inMilliseconds);
+        editor.end = Millis(player.state.position.inMilliseconds + 100);
+        return true;
+    });
+    editindex = ind;
+    print(ind);
+    }
+    else {
+      subs.edit(editindex, (editor) {
+        editor.start = Millis(player.state.position.inMilliseconds);
+        return true;
+    });
+    }
+  }
+
+  void setEndTime() {
+    print("end: ${player.state.position}");
+    if (editindex != -2) {
+    subs.edit(editindex, (editor) {
+        editor.end = Millis(player.state.position.inMilliseconds);
+        return true;
+    });
+    setState(() {});
+    }
+    editindex = -2;
+  }
+  void deleteSub() {
+    print(_controller2);
+    for (var i = 0; i < subs.length - 1; i++) {
+      if (subs[i].start.ticks < player.state.position.inMilliseconds && player.state.position.inMilliseconds < subs[i + 1].start.ticks) {
+        subs.edit(i, (_) => false);
+        setState(() {});
+      }
+    }
+  }
+
+  void exportSubs() async {
+  final result = await FilePicker.platform.saveFile(
+    type: FileType.custom,
+    allowedExtensions: ['txt', 'srt'],
+  );
+  
+  subs.export(File(result.toString()), srt.export);
   }
 
   @override
@@ -261,6 +332,60 @@ class _MyHomePageState extends State<MyHomePage> {
                       child: const Icon(Icons.text_snippet_rounded),
                     ),
                   ),
+                  SizedBox(
+                      width: MediaQuery.sizeOf(context).width * 0.05,
+                      height: MediaQuery.sizeOf(context).width * 0.05,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                      width: MediaQuery.sizeOf(context).width * 0.03,
+                      height: MediaQuery.sizeOf(context).width * 0.03,
+                      
+                      child: FloatingActionButton(
+                        onPressed: setStartTime,
+                        tooltip: 'Set start-time',
+                        child: const Icon(Icons.more_time),
+                      ),
+                    ),
+                    SizedBox(
+                      width: MediaQuery.sizeOf(context).width * 0.01,
+                      height: MediaQuery.sizeOf(context).width * 0.01,),
+                    SizedBox(
+                      width: MediaQuery.sizeOf(context).width * 0.03,
+                      height: MediaQuery.sizeOf(context).width * 0.03,
+                      child: FloatingActionButton(
+                        onPressed: setEndTime,
+                        tooltip: 'Set end-time',
+                        child: const Icon(Icons.timer_rounded),
+                      ),
+                    ),
+                    SizedBox(
+                      width: MediaQuery.sizeOf(context).width * 0.01,
+                      height: MediaQuery.sizeOf(context).width * 0.01,),
+                    SizedBox(
+                      width: MediaQuery.sizeOf(context).width * 0.03,
+                      height: MediaQuery.sizeOf(context).width * 0.03,
+                      child: FloatingActionButton(
+                        onPressed: deleteSub,
+                        tooltip: 'Delete sub',
+                        child: const Icon(Icons.auto_delete),
+                      ),
+                    ),
+                    SizedBox(
+                      width: MediaQuery.sizeOf(context).width * 0.01,
+                      height: MediaQuery.sizeOf(context).width * 0.01,),
+                    SizedBox(
+                      width: MediaQuery.sizeOf(context).width * 0.03,
+                      height: MediaQuery.sizeOf(context).width * 0.03,
+                      child: FloatingActionButton(
+                        onPressed: exportSubs,
+                        tooltip: 'Export subtitles',
+                        child: const Icon(Icons.save_alt),
+                      ),
+                    ),
+                  ]),
+                  
                 ],
               ),
             ],
@@ -269,15 +394,34 @@ class _MyHomePageState extends State<MyHomePage> {
           Expanded(
             child: ListView.builder(
               // Построитель списка для субтитров
-              itemCount: subtits.length, // количество субтитров
-              itemBuilder: (context, i) => ListTile(
-                title: Text("${subtits[i].start.hours}:${subtits[i].start.minutes}:${subtits[i].start.seconds},${subtits[i].start.format().millisecond} - ${subtits[i].end.hours}:${subtits[i].end.minutes}:${subtits[i].end.seconds},${subtits[i].end.format().millisecond}"),
-                subtitle: Text(subtits[i].text),
+              controller: _controller2,
+              itemCount: subs.length, // количество субтитров
+              itemBuilder: (context, i) => 
+              ListTile(
+                title: TextFormField(
+                  readOnly: true,
+                  controller: TextEditingController()..text = "${subs[i].start.format().hour}:${subs[i].start.format().minute}:${subs[i].start.format().second},${subs[i].start.format().millisecond} - ${subs[i].end.format().hour}:${subs[i].end.format().minute}:${subs[i].end.format().second},${subs[i].end.format().millisecond}",
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    ),
+                    ),
+                subtitle: TextFormField(
+                  controller: TextEditingController()..text = subs[i].text,
+                  minLines: 1,
+                  maxLines: 2,
+                  onChanged: (value) => {EditLine(value, i)}),
+                  onFocusChange: (value) => {print("+++= На фокусе =+++"),
+                    subs.export(File("auto.srt"), srt.export),
+                    player.setSubtitleTrack(SubtitleTrack.uri("auto.srt")),
+                    print("автосохранение субтитров")},
               ),
             ),
           ),
         ],
       ),
+    
     );
   }
 }

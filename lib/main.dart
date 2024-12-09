@@ -118,6 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
       String _videofilePath = result.files.single.path as String;
       _file_video_path = _videofilePath;
       player.open(Media(_videofilePath));
+      player.setSubtitleTrack(SubtitleTrack.uri("auto.srt"));
       setState(() {});
     } else {
       // User canceled the picker
@@ -138,6 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _file_sub_path = result.files.single.path as String;
       player.setSubtitleTrack(SubtitleTrack.uri(_file_sub_path.toString()));
       subs.export(File("auto.srt"), srt.export);
+      saves_subs.clear();
 
       setState(() {});
       print(_file_sub_path);
@@ -175,6 +177,7 @@ class _MyHomePageState extends State<MyHomePage> {
         subs = v;
         setState(() { });
         print("Файл субтитров прошёл");
+        _file_sub_path = 'test_subs/HS_StarTrekLowerDecks_s05e06_AMZN_FLUX.srt';
       case Err(value: final e):
         print(e);
         print("Ошибка импорта субтитров");
@@ -203,6 +206,44 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+   void EditTimeStart(final value, int index) {
+    DateTime tt;
+    try {
+      tt = DateFormat('HH:mm:ss,S').parse(value);
+      int tick = tt.hour * 60 * 60 * 1000;
+      tick = tick + tt.minute * 60 * 1000;
+      tick = tick + tt.second * 1000;
+      tick = tick + tt.millisecond;
+      print(tick);
+      print("-=-= Отредактирован time =-=-");
+      subs.edit(index, (editor) {
+        editor.start = Millis(tick);
+        return true;
+      });
+    } catch (e) {
+      print("ВРЕМЯ НЕ ТО");
+    }
+  }
+
+   void EditTimeEnd(final value, int index) {
+    DateTime tt;
+    try {
+      tt = DateFormat('HH:mm:ss,S').parse(value);
+      int tick = tt.hour * 60 * 60 * 1000;
+      tick = tick + tt.minute * 60 * 1000;
+      tick = tick + tt.second * 1000;
+      tick = tick + tt.millisecond;
+      print(tick);
+      print("-=-= Отредактирован time =-=-");
+      subs.edit(index, (editor) {
+        editor.end = Millis(tick);
+        return true;
+      });
+    } catch (e) {
+      print("ВРЕМЯ НЕ ТО 2");
+    }
+  }
+
   void EditLine(final value, int index) {
     subs[index];
     print("-=-= Отредактирован =-=-");
@@ -212,6 +253,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
     print(subs[index].text);
   }
+
   int editindex = -2;
 
   void setTime() {
@@ -352,7 +394,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 height:
                     MediaQuery.of(context).size.width * playerPortion * RATIO,
                 // Use [Video] widget to display video output.
-                child: Video(controller: controller),
+                child: Video(controller: controller,
+                ),
               ),
               SizedBox(
                 height: MediaQuery.sizeOf(context).height * 0.01,
@@ -481,22 +524,42 @@ class _MyHomePageState extends State<MyHomePage> {
               itemCount: subs.length, // количество субтитров
               itemBuilder: (context, i) => 
               Row(
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [Flexible(
-                flex: 4,
                 child: ListTile(
                 onTap: () {setState(() {_selectedIndex = i; print(i);});},
                 selected: i == _selectedIndex,
-                title: TextFormField(
-                  onTap: () {setState(() {_selectedIndex = i; print(i);});},
-                  // readOnly: true,
-                  controller: TextEditingController()..text = "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].start.ticks, isUtc:true))} - ${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].end.ticks, isUtc:true))}",
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                    ),
-                    ),
+                title: Row(
+                  children: [
+                  SizedBox(
+                    width: MediaQuery.sizeOf(context).width * 0.08,
+                    child: TextField(
+                      onTap: () {setState(() {_selectedIndex = i; print(i);});},
+                      controller: TextEditingController()..text = "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].start.ticks, isUtc:true))}",
+                      onChanged: (value) => {EditTimeStart(value, i)},
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                        ),
+                        ),
+                      ),
+                  Text(" - "),
+                  SizedBox(
+                    width: MediaQuery.sizeOf(context).width * 0.08,
+                    child: TextField(
+                      onTap: () {setState(() {_selectedIndex = i; print(i);});},
+                      controller: TextEditingController()..text = "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].end.ticks, isUtc:true))}",
+                      onChanged: (value) => {EditTimeEnd(value, i)},
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                        ),
+                        ),
+                  ),
+                ]
+                ),
+                
                 subtitle: TextFormField(
                   onTap: () {setState(() {_selectedIndex = i; print(i);});},
                   controller: TextEditingController()..text = subs[i].text,

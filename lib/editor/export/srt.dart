@@ -3,24 +3,26 @@ import 'dart:io';
 import 'package:subtitle_editor/editor/subtitles.dart';
 import 'package:subtitle_editor/editor/time.dart';
 
-void _writeDoubleDigitInt(RandomAccessFile file, int value) {
+void _writeZeroPaddedDigitInt(RandomAccessFile file, int width, int value) {
   const zero = 0x30; // 0
   final result = value.toString();
-  if (result.length == 1) {
-    file.writeByteSync(zero);
+  if (width > result.length) {
+    for (var i = 0; i < width - result.length; ++i) {
+      file.writeByteSync(zero);
+    }
   }
   file.writeStringSync(result);
 }
 
 void _writeTime(RandomAccessFile file, MillisFormatted value) {
   const colon = 0x3a /* : */, comma = 0x2c /* , */;
-  _writeDoubleDigitInt(file, value.hour);
+  _writeZeroPaddedDigitInt(file, 2, value.hour);
   file.writeByteSync(colon);
-  _writeDoubleDigitInt(file, value.minute);
+  _writeZeroPaddedDigitInt(file, 2, value.minute);
   file.writeByteSync(colon);
-  _writeDoubleDigitInt(file, value.second);
+  _writeZeroPaddedDigitInt(file, 2, value.second);
   file.writeByteSync(comma);
-  _writeDoubleDigitInt(file, value.millisecond);
+  _writeZeroPaddedDigitInt(file, 3, value.millisecond);
 }
 
 void export(RandomAccessFile file, Iterable<Subtitle> subs) {

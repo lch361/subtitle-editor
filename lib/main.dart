@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:media_kit/media_kit.dart'; // Provides [Player], [Media], [Playlist] etc.
 import 'package:media_kit_video/media_kit_video.dart'; // Provides [VideoController] & [Video] etc.
@@ -11,7 +13,6 @@ import 'package:subtitle_editor/editor/time.dart';
 import 'package:subtitle_editor/editor/import/srt.dart' as srt;
 import 'package:subtitle_editor/editor/export/srt.dart' as srt;
 import 'package:subtitle_editor/collections/result.dart';
-
 
 // Размер проигрывателя - 16 на 9
 const RATIO = 9.0 / 16.0;
@@ -80,6 +81,12 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+class IncrementIntent extends Intent {
+    const IncrementIntent();}
+
+class IncrementIntent2 extends Intent {
+    const IncrementIntent2();}
+
 class _MyHomePageState extends State<MyHomePage> {
   /////////////////////////////////////////////
   // Создаём плеер и управление плейером
@@ -98,7 +105,8 @@ class _MyHomePageState extends State<MyHomePage> {
   late String? _file_sub_path;
 
   var subs = SubtitleTable();
-  // List<Subtitle> subtits = [];
+  int _selectedIndex = -1;
+  List<Subtitle> saves_subs = [];
 
   // импорт видео в программу
   void getFileVideo() async {
@@ -206,6 +214,18 @@ class _MyHomePageState extends State<MyHomePage> {
   }
   int editindex = -2;
 
+  void setTime() {
+    print("posis start: ${player.state.position}");
+    int ind = subs.insert(-1, (editor) {
+        editor.text = "";
+        editor.start = Millis(player.state.position.inMilliseconds);
+        editor.end = Millis(player.state.position.inMilliseconds + 100);
+        return true;
+    });
+    print(ind);
+    setState(() {});
+  }
+
   void setStartTime() {
     print("start: ${player.state.position}");
     if (editindex == -2) {
@@ -241,7 +261,12 @@ class _MyHomePageState extends State<MyHomePage> {
     print(_controller2);
     for (var i = 0; i < subs.length - 1; i++) {
       if (subs[i].start.ticks < player.state.position.inMilliseconds && player.state.position.inMilliseconds < subs[i + 1].start.ticks) {
+        saves_subs.add(subs[i]);
         subs.edit(i, (_) => false);
+        while (saves_subs.length > 100) {
+          print("УДАЛЕННО:");
+          print(saves_subs.removeAt(0).text);
+        }
         setState(() {});
       }
     }
@@ -255,10 +280,39 @@ class _MyHomePageState extends State<MyHomePage> {
   
   subs.export(File(result.toString()), srt.export);
   }
+  
+  void PressedCtrlZ() {
+    print("PRESS Z");
+    if (saves_subs.length == 0) {return;}
+    var s = saves_subs[saves_subs.length - 1];
+    int ind = subs.insert(-1, (editor) {
+        editor.text = s.text;
+        editor.start = s.start;
+        editor.end = s.end;
+        return true;
+    });
+    saves_subs.removeAt(saves_subs.length - 1);
+    setState(() {});
+  }
+
+  void PressedDel() {
+    print("PRESS DELshift");
+    if (_selectedIndex == -1) {return;}
+
+    saves_subs.add(subs[_selectedIndex]);
+    subs.edit(_selectedIndex, (_) => false);
+    while (saves_subs.length > 100) {
+      print("УДАЛЕННО:");
+      print(saves_subs.removeAt(0).text);
+    }
+    setState(() {});
+    _selectedIndex == -1;
+    }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      
       appBar: AppBar(
         //Верхняя часть с именем
         // TRY THIS: Try changing the color here to a specific color (to
@@ -270,7 +324,23 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         
       ),
-      body: Row(
+    body: Shortcuts( 
+      shortcuts: <ShortcutActivator, Intent>{
+      LogicalKeySet(LogicalKeyboardKey.keyZ, LogicalKeyboardKey.controlLeft):
+          const IncrementIntent(),
+      LogicalKeySet(LogicalKeyboardKey.delete, LogicalKeyboardKey.shiftRight):
+        const IncrementIntent2(),
+    },
+    child: Actions(
+      actions: <Type, Action<Intent>>{
+        IncrementIntent: CallbackAction<IncrementIntent>(
+          onInvoke: (IncrementIntent intent) => PressedCtrlZ(),
+        ),
+        IncrementIntent2: CallbackAction<IncrementIntent2>(
+          onInvoke: (IncrementIntent2 intent) => PressedDel(),
+        ),
+      },
+      child: Row(
         //Тело, разделённое по колонкам
         children: [
           Column(
@@ -343,6 +413,19 @@ class _MyHomePageState extends State<MyHomePage> {
                       height: MediaQuery.sizeOf(context).width * 0.03,
                       
                       child: FloatingActionButton(
+                        onPressed: setTime,
+                        tooltip: 'Set time',
+                        child: const Icon(Icons.timer_outlined),
+                      ),
+                    ),
+                    SizedBox(
+                      width: MediaQuery.sizeOf(context).width * 0.01,
+                      height: MediaQuery.sizeOf(context).width * 0.01,),
+                      SizedBox(
+                      width: MediaQuery.sizeOf(context).width * 0.03,
+                      height: MediaQuery.sizeOf(context).width * 0.03,
+                      
+                      child: FloatingActionButton(
                         onPressed: setStartTime,
                         tooltip: 'Set start-time',
                         child: const Icon(Icons.more_time),
@@ -397,10 +480,17 @@ class _MyHomePageState extends State<MyHomePage> {
               controller: _controller2,
               itemCount: subs.length, // количество субтитров
               itemBuilder: (context, i) => 
-              ListTile(
+              Row(
+              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [Flexible(
+                flex: 4,
+                child: ListTile(
+                onTap: () {setState(() {_selectedIndex = i; print(i);});},
+                selected: i == _selectedIndex,
                 title: TextFormField(
-                  readOnly: true,
-                  controller: TextEditingController()..text = "${subs[i].start.format().hour}:${subs[i].start.format().minute}:${subs[i].start.format().second},${subs[i].start.format().millisecond} - ${subs[i].end.format().hour}:${subs[i].end.format().minute}:${subs[i].end.format().second},${subs[i].end.format().millisecond}",
+                  onTap: () {setState(() {_selectedIndex = i; print(i);});},
+                  // readOnly: true,
+                  controller: TextEditingController()..text = "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].start.ticks, isUtc:true))} - ${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].end.ticks, isUtc:true))}",
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     isDense: true,
@@ -408,6 +498,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     ),
                 subtitle: TextFormField(
+                  onTap: () {setState(() {_selectedIndex = i; print(i);});},
                   controller: TextEditingController()..text = subs[i].text,
                   minLines: 1,
                   maxLines: 2,
@@ -415,13 +506,35 @@ class _MyHomePageState extends State<MyHomePage> {
                   onFocusChange: (value) => {print("+++= На фокусе =+++"),
                     subs.export(File("auto.srt"), srt.export),
                     player.setSubtitleTrack(SubtitleTrack.uri("auto.srt")),
-                    print("автосохранение субтитров")},
-              ),
+                    print("автосохранение субтитров"),
+                    },
+              )),
+              SizedBox(
+                width: MediaQuery.sizeOf(context).width * 0.03,
+                height: MediaQuery.sizeOf(context).width * 0.03,
+                child:   IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () {
+                    setState(() {
+                      saves_subs.add(subs[i]);
+                      subs.edit(i, (_) => false);
+                      print(saves_subs[saves_subs.length - 1].text);
+                      while (saves_subs.length > 100) {
+                        print("УДАЛЕННО:");
+                        print(saves_subs.removeAt(0).text);
+                      }
+                    });
+                  }),),
+                  
+                  SizedBox(
+                width: MediaQuery.sizeOf(context).width * 0.008,
+                height: MediaQuery.sizeOf(context).width * 0.008)],)
             ),
           ),
         ],
       ),
-    
+      ),
+      ),
     );
   }
 }

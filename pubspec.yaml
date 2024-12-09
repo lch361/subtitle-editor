@@ -39,6 +39,10 @@ dependencies:
 
   cupertino_icons: ^1.0.8 # Иконки
 
+  intl: ^0.20.1 # время формат
+
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

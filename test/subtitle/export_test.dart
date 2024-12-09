@@ -30,7 +30,7 @@ SubtitleTable sample() {
   });
 
   result.insert(-1, (editor) {
-    editor.start = Millis(198608);
+    editor.start = Millis(198008);
     editor.end = Millis(200371);
     editor.text = "I guess I was wrong.";
     return true;
@@ -61,7 +61,7 @@ Very good, Lieutenant.
 We made it.
 
 4
-00:03:18,608 --> 00:03:20,371
+00:03:18,008 --> 00:03:20,371
 I guess I was wrong.
 
 5

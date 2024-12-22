@@ -25,6 +25,21 @@ typedef ImportFunction<E> = Iterable<Result<Subtitle, E>> Function(
 ///   субтитров
 typedef ExportFunction = void Function(RandomAccessFile, Iterable<Subtitle>);
 
+Iterable<Subtitle> _filterSubsForExport(Iterable<Subtitle> subs) sync* {
+  for (final sub in subs) {
+    var result = StringBuffer();
+    var newline = false;
+    for (final line in sub.text.split('\n')) {
+      if (line.isEmpty) continue;
+      if (newline) result.write('\n');
+      result.write(line);
+      newline = true;
+    }
+    if (result.isEmpty) continue;
+    yield Subtitle(sub.start, sub.end, result.toString());
+  }
+}
+
 /// Таблица субтитров, эффективная, упорядоченная и изменяемая.
 class SubtitleTable {
   final _subtitleTree = RbIndexedTree<Subtitle>();
@@ -102,7 +117,7 @@ class SubtitleTable {
   void export(File file, ExportFunction f) {
     var rafile = file.openSync(mode: FileMode.writeOnly);
     try {
-      f(rafile, _subtitleTree);
+      f(rafile, _filterSubsForExport(_subtitleTree));
     } finally {
       rafile.closeSync();
     }

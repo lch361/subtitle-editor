@@ -36,21 +36,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Subtitle editor',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
@@ -65,16 +50,6 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage(
       {super.key,
       required this.title}); //А здесь имя запрашивается, передаётся в поле [MaterialApp.home]
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -88,17 +63,11 @@ class IncrementIntent2 extends Intent {
     const IncrementIntent2();}
 
 class _MyHomePageState extends State<MyHomePage> {
-  /////////////////////////////////////////////
   // Создаём плеер и управление плейером
-  // Create a [Player] to control playback.
   late Player player = Player();
-  // Create a [VideoController] to handle video output from [Player].
   late VideoController controller = VideoController(player);
   late SubtitleTrack subtitle = player.state.track.subtitle;
-
-
   final ScrollController _controller2 = ScrollController();
- 
 
   // Выбранный файл-видео
   late String? _file_video_path;
@@ -107,13 +76,16 @@ class _MyHomePageState extends State<MyHomePage> {
   var subs = SubtitleTable();
   int _selectedIndex = -1;
   List<Subtitle> saves_subs = [];
+  int timeSchange = -1;
+  int timeEchange = -1;
+  bool selectChange = false;
+  bool isDoubleTap = false;
 
   // импорт видео в программу
   void getFileVideo() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.video,
     );
-
     if (result != null) {
       String _videofilePath = result.files.single.path as String;
       _file_video_path = _videofilePath;
@@ -121,7 +93,6 @@ class _MyHomePageState extends State<MyHomePage> {
       player.setSubtitleTrack(SubtitleTrack.uri("auto.srt"));
       setState(() {});
     } else {
-      // User canceled the picker
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Please select video file'),
       ));
@@ -134,57 +105,47 @@ class _MyHomePageState extends State<MyHomePage> {
       type: FileType.custom,
       allowedExtensions: ['txt', 'srt'],
     );
-
     if (result != null) {
       _file_sub_path = result.files.single.path as String;
       player.setSubtitleTrack(SubtitleTrack.uri(_file_sub_path.toString()));
       subs.export(File("auto.srt"), srt.export);
       saves_subs.clear();
-
       setState(() {});
-      print(_file_sub_path);
       build.call(context);
       setState(() {});
       switch (SubtitleTable.import(File(_file_sub_path.toString()), srt.import)) {
         case Ok(value: final v):
           subs = v;
-          print(subs[0].text);
           setState(() { });
-          print("Файл субтитров загрузился");
         case Err(value: final e):
           print(e);
-          print("Ошибка при загрузке файла - возможно, не тот тип файла");
         }
     } else {
-      // User canceled the picker
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Please select subtitle file'),
       ));
     }
-  
-
   }
 
-  ///////////////////////////////////////////////////
   // Функция для вставки видео в плейер
   @override
   void initState() {
     super.initState();
     
     // тестовый импорт вначале
-    switch (SubtitleTable.import(File('test_subs/HS_StarTrekLowerDecks_s05e06_AMZN_FLUX.srt'), srt.import)) {
+    switch (SubtitleTable.import(File('test_subs/Star_Trek_Lower_Decks1e6.Terminal Provocations.srt'), srt.import)) {
       case Ok(value: final v):
         subs = v;
-        setState(() { });
-        print("Файл субтитров прошёл");
-        _file_sub_path = 'test_subs/HS_StarTrekLowerDecks_s05e06_AMZN_FLUX.srt';
+        setState(() {});
+        _file_sub_path = 'test_subs/Star_Trek_Lower_Decks1e6.Terminal Provocations.srt';
       case Err(value: final e):
         print(e);
-        print("Ошибка импорта субтитров");
       }
     // Play a [Media] or [Playlist].
+    // player.open(Media(5 
+    //     'https://user-images.githubusercontent.com/28951144/229373695-22f88f13-d18f-4288-9bf1-c3e078d83722.mp4'));
     player.open(Media(
-        'https://user-images.githubusercontent.com/28951144/229373695-22f88f13-d18f-4288-9bf1-c3e078d83722.mp4'));
+        'test_subs/6.Terminal Provocations.demo.mp4'));
   }
 
   @override
@@ -195,37 +156,34 @@ class _MyHomePageState extends State<MyHomePage> {
   void _tellTime() {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text("Video is on ${player.state.position}"),
-      duration: Duration(milliseconds: 400,),
+      duration: Duration(milliseconds: 400),
     ));
-    print(_controller2);
+    
     for (var i = 0; i < subs.length - 1; i++) {
       if (subs[i].start.ticks < player.state.position.inMilliseconds && player.state.position.inMilliseconds < subs[i + 1].start.ticks) {
-        print("ОН ТУТ ВИДЕТ");
-        _controller2.jumpTo(90.0 * (i + 1));
+        ScrollToIndex(i, 0);
       }
     }
   }
 
-   void EditTimeStart(final value, int index) {
-    DateTime tt;
-    try {
-      tt = DateFormat('HH:mm:ss,S').parse(value);
-      int tick = tt.hour * 60 * 60 * 1000;
-      tick = tick + tt.minute * 60 * 1000;
-      tick = tick + tt.second * 1000;
-      tick = tick + tt.millisecond;
-      print(tick);
-      print("-=-= Отредактирован time =-=-");
-      subs.edit(index, (editor) {
-        editor.start = Millis(tick);
+  void ScrollToIndex(int index, double step) {
+    _controller2.jumpTo(90.0 * (index + 1 + step));
+  }
+
+  void CompleteTimeStart() {
+    if (timeSchange != -1) {
+      int ind = subs.edit(_selectedIndex, (editor) {
+        editor.start = Millis(timeSchange);
         return true;
-      });
-    } catch (e) {
-      print("ВРЕМЯ НЕ ТО");
+    });
+      ScrollToIndex(ind, -4);
+      _selectedIndex = ind;
+      timeSchange = -1;
+      setState(() {});
     }
   }
 
-   void EditTimeEnd(final value, int index) {
+  void EditTimeStart(final value) {
     DateTime tt;
     try {
       tt = DateFormat('HH:mm:ss,S').parse(value);
@@ -233,43 +191,59 @@ class _MyHomePageState extends State<MyHomePage> {
       tick = tick + tt.minute * 60 * 1000;
       tick = tick + tt.second * 1000;
       tick = tick + tt.millisecond;
-      print(tick);
-      print("-=-= Отредактирован time =-=-");
-      subs.edit(index, (editor) {
-        editor.end = Millis(tick);
-        return true;
-      });
+      timeSchange = tick;
     } catch (e) {
-      print("ВРЕМЯ НЕ ТО 2");
+      print(e);
+    }
+  }
+
+  void CompleteTimeEnd() {
+    if (timeEchange != -1) {
+      int ind = subs.edit(_selectedIndex, (editor) {
+        editor.end = Millis(timeEchange);
+        return true;
+    });
+      ScrollToIndex(ind, -4);
+      _selectedIndex = ind;
+      timeEchange = -1;
+      setState(() {});
+    }
+  }
+   void EditTimeEnd(final value) {
+    DateTime tt;
+    try {
+      tt = DateFormat('HH:mm:ss,S').parse(value);
+      int tick = tt.hour * 60 * 60 * 1000;
+      tick = tick + tt.minute * 60 * 1000;
+      tick = tick + tt.second * 1000;
+      tick = tick + tt.millisecond;
+      timeEchange = tick;
+    } catch (e) {
+      print(e);
     }
   }
 
   void EditLine(final value, int index) {
     subs[index];
-    print("-=-= Отредактирован =-=-");
     subs.edit(index, (editor) {
       editor.text = value;
       return true;
     });
-    print(subs[index].text);
   }
 
   int editindex = -2;
 
   void setTime() {
-    print("posis start: ${player.state.position}");
-    int ind = subs.insert(-1, (editor) {
+    subs.insert(-1, (editor) {
         editor.text = "";
         editor.start = Millis(player.state.position.inMilliseconds);
         editor.end = Millis(player.state.position.inMilliseconds + 100);
         return true;
     });
-    print(ind);
     setState(() {});
   }
 
   void setStartTime() {
-    print("start: ${player.state.position}");
     if (editindex == -2) {
     int ind = subs.insert(-1, (editor) {
         editor.text = "";
@@ -278,7 +252,6 @@ class _MyHomePageState extends State<MyHomePage> {
         return true;
     });
     editindex = ind;
-    print(ind);
     }
     else {
       subs.edit(editindex, (editor) {
@@ -289,7 +262,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void setEndTime() {
-    print("end: ${player.state.position}");
     if (editindex != -2) {
     subs.edit(editindex, (editor) {
         editor.end = Millis(player.state.position.inMilliseconds);
@@ -299,15 +271,14 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     editindex = -2;
   }
+
   void deleteSub() {
-    print(_controller2);
     for (var i = 0; i < subs.length - 1; i++) {
       if (subs[i].start.ticks < player.state.position.inMilliseconds && player.state.position.inMilliseconds < subs[i + 1].start.ticks) {
         saves_subs.add(subs[i]);
         subs.edit(i, (_) => false);
-        while (saves_subs.length > 100) {
-          print("УДАЛЕННО:");
-          print(saves_subs.removeAt(0).text);
+        if (saves_subs.length == 100) {
+          saves_subs.removeAt(0);
         }
         setState(() {});
       }
@@ -315,19 +286,17 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void exportSubs() async {
-  final result = await FilePicker.platform.saveFile(
-    type: FileType.custom,
-    allowedExtensions: ['txt', 'srt'],
-  );
-  
-  subs.export(File(result.toString()), srt.export);
+    final result = await FilePicker.platform.saveFile(
+      type: FileType.custom,
+      allowedExtensions: ['txt', 'srt'],
+    );
+    subs.export(File(result.toString()), srt.export);
   }
   
   void PressedCtrlZ() {
-    print("PRESS Z");
     if (saves_subs.length == 0) {return;}
     var s = saves_subs[saves_subs.length - 1];
-    int ind = subs.insert(-1, (editor) {
+    subs.insert(-1, (editor) {
         editor.text = s.text;
         editor.start = s.start;
         editor.end = s.end;
@@ -338,18 +307,24 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void PressedDel() {
-    print("PRESS DELshift");
     if (_selectedIndex == -1) {return;}
-
     saves_subs.add(subs[_selectedIndex]);
     subs.edit(_selectedIndex, (_) => false);
-    while (saves_subs.length > 100) {
-      print("УДАЛЕННО:");
-      print(saves_subs.removeAt(0).text);
+    if (saves_subs.length == 100) {
+      saves_subs.removeAt(0);
     }
     setState(() {});
     _selectedIndex == -1;
     }
+
+  void toTimeVideo() {
+    Millis time = subs[_selectedIndex].start;
+    player.seek(Duration(
+      hours: time.format().hour,
+      minutes: time.format().minute,
+      seconds: time.format().second,
+      milliseconds: time.format().millisecond));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -526,16 +501,27 @@ class _MyHomePageState extends State<MyHomePage> {
               Row(
               children: [Flexible(
                 child: ListTile(
-                onTap: () {setState(() {_selectedIndex = i; print(i);});},
+                onTap: () {
+                  if (_selectedIndex != i) {isDoubleTap = false;}
+                  if (isDoubleTap) {
+                    toTimeVideo();
+                    isDoubleTap = false;
+                    }
+                  else {isDoubleTap = true;}
+                  setState(() {_selectedIndex = i;});
+                  },
                 selected: i == _selectedIndex,
                 title: Row(
                   children: [
                   SizedBox(
                     width: MediaQuery.sizeOf(context).width * 0.08,
                     child: TextField(
-                      onTap: () {setState(() {_selectedIndex = i; print(i);});},
+                      onTap: () { _selectedIndex = i;},
                       controller: TextEditingController()..text = "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].start.ticks, isUtc:true))}",
-                      onChanged: (value) => {EditTimeStart(value, i)},
+                      onChanged: (value) => {EditTimeStart(value)},
+                      onEditingComplete: () => {
+                        CompleteTimeStart(),
+                        },
                       decoration: const InputDecoration(
                         border: InputBorder.none,
                         isDense: true,
@@ -547,9 +533,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   SizedBox(
                     width: MediaQuery.sizeOf(context).width * 0.08,
                     child: TextField(
-                      onTap: () {setState(() {_selectedIndex = i; print(i);});},
+                      onTap: () {setState(() {_selectedIndex = i;});},
                       controller: TextEditingController()..text = "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].end.ticks, isUtc:true))}",
-                      onChanged: (value) => {EditTimeEnd(value, i)},
+                      onChanged: (value) => {EditTimeEnd(value)},
+                      onEditingComplete: () => {
+                        CompleteTimeEnd(),
+                        },
                       decoration: const InputDecoration(
                         border: InputBorder.none,
                         isDense: true,
@@ -561,15 +550,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 
                 subtitle: TextFormField(
-                  onTap: () {setState(() {_selectedIndex = i; print(i);});},
+                  onTap: () {setState(() {_selectedIndex = i;});},
                   controller: TextEditingController()..text = subs[i].text,
                   minLines: 1,
                   maxLines: 2,
                   onChanged: (value) => {EditLine(value, i)}),
-                  onFocusChange: (value) => {print("+++= На фокусе =+++"),
+                  onFocusChange: (value) => {
                     subs.export(File("auto.srt"), srt.export),
                     player.setSubtitleTrack(SubtitleTrack.uri("auto.srt")),
-                    print("автосохранение субтитров"),
                     },
               )),
               SizedBox(
@@ -581,10 +569,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     setState(() {
                       saves_subs.add(subs[i]);
                       subs.edit(i, (_) => false);
-                      print(saves_subs[saves_subs.length - 1].text);
-                      while (saves_subs.length > 100) {
-                        print("УДАЛЕННО:");
-                        print(saves_subs.removeAt(0).text);
+                      if (saves_subs.length == 100) {
+                        saves_subs.removeAt(0);
                       }
                     });
                   }),),

@@ -134,24 +134,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-
-    // тестовый импорт вначале
-    switch (SubtitleTable.import(
-        File('test_subs/Star_Trek_Lower_Decks1e6.Terminal Provocations.srt'),
-        srt.import)) {
-      case Ok(value: final v):
-        subs = v;
-        setState(() {});
-        _file_sub_path =
-            'test_subs/Star_Trek_Lower_Decks1e6.Terminal Provocations.srt';
-      case Err(value: final e):
-        print(e);
-    }
-    // Play a [Media] or [Playlist].
-    // player.open(Media(5
-    //     'https://user-images.githubusercontent.com/28951144/229373695-22f88f13-d18f-4288-9bf1-c3e078d83722.mp4'));
-    player.open(Media('test_subs/6.Terminal Provocations.demo.mp4'),
-        play: false);
   }
 
   @override

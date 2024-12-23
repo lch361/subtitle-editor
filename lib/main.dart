@@ -27,7 +27,6 @@ void main() {
   runApp(const MyApp());
 }
 
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -58,10 +57,12 @@ class MyHomePage extends StatefulWidget {
 }
 
 class IncrementIntent extends Intent {
-    const IncrementIntent();}
+  const IncrementIntent();
+}
 
 class IncrementIntent2 extends Intent {
-    const IncrementIntent2();}
+  const IncrementIntent2();
+}
 
 class _MyHomePageState extends State<MyHomePage> {
   // Создаём плеер и управление плейером
@@ -114,13 +115,14 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {});
       build.call(context);
       setState(() {});
-      switch (SubtitleTable.import(File(_file_sub_path.toString()), srt.import)) {
+      switch (
+          SubtitleTable.import(File(_file_sub_path.toString()), srt.import)) {
         case Ok(value: final v):
           subs = v;
-          setState(() { });
+          setState(() {});
         case Err(value: final e):
           print(e);
-        }
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Please select subtitle file'),
@@ -132,21 +134,24 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    
+
     // тестовый импорт вначале
-    switch (SubtitleTable.import(File('test_subs/Star_Trek_Lower_Decks1e6.Terminal Provocations.srt'), srt.import)) {
+    switch (SubtitleTable.import(
+        File('test_subs/Star_Trek_Lower_Decks1e6.Terminal Provocations.srt'),
+        srt.import)) {
       case Ok(value: final v):
         subs = v;
         setState(() {});
-        _file_sub_path = 'test_subs/Star_Trek_Lower_Decks1e6.Terminal Provocations.srt';
+        _file_sub_path =
+            'test_subs/Star_Trek_Lower_Decks1e6.Terminal Provocations.srt';
       case Err(value: final e):
         print(e);
-      }
+    }
     // Play a [Media] or [Playlist].
-    // player.open(Media(5 
+    // player.open(Media(5
     //     'https://user-images.githubusercontent.com/28951144/229373695-22f88f13-d18f-4288-9bf1-c3e078d83722.mp4'));
-    player.open(Media(
-        'test_subs/6.Terminal Provocations.demo.mp4'), play: false);
+    player.open(Media('test_subs/6.Terminal Provocations.demo.mp4'),
+        play: false);
   }
 
   @override
@@ -154,14 +159,16 @@ class _MyHomePageState extends State<MyHomePage> {
     player.dispose();
     super.dispose();
   }
+
   void _tellTime() {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text("Video is on ${player.state.position}"),
       duration: Duration(milliseconds: 400),
     ));
-    
+
     for (var i = 0; i < subs.length - 1; i++) {
-      if (subs[i].start.ticks < player.state.position.inMilliseconds && player.state.position.inMilliseconds < subs[i + 1].start.ticks) {
+      if (subs[i].start.ticks < player.state.position.inMilliseconds &&
+          player.state.position.inMilliseconds < subs[i + 1].start.ticks) {
         ScrollToIndex(i, 0);
       }
     }
@@ -176,7 +183,7 @@ class _MyHomePageState extends State<MyHomePage> {
       int ind = subs.edit(_selectedIndex, (editor) {
         editor.start = Millis(timeSchange);
         return true;
-    });
+      });
       ScrollToIndex(ind, -4);
       _selectedIndex = ind;
       timeSchange = -1;
@@ -203,14 +210,15 @@ class _MyHomePageState extends State<MyHomePage> {
       int ind = subs.edit(_selectedIndex, (editor) {
         editor.end = Millis(timeEchange);
         return true;
-    });
+      });
       ScrollToIndex(ind, -4);
       _selectedIndex = ind;
       timeEchange = -1;
       setState(() {});
     }
   }
-   void EditTimeEnd(final value) {
+
+  void EditTimeEnd(final value) {
     DateTime tt;
     try {
       tt = DateFormat('HH:mm:ss,S').parse(value);
@@ -236,46 +244,46 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void setTime() {
     subs.insert(-1, (editor) {
-        editor.text = "";
-        editor.start = Millis(player.state.position.inMilliseconds);
-        editor.end = Millis(player.state.position.inMilliseconds + 100);
-        return true;
+      editor.text = "";
+      editor.start = Millis(player.state.position.inMilliseconds);
+      editor.end = Millis(player.state.position.inMilliseconds + 100);
+      return true;
     });
     setState(() {});
   }
 
   void setStartTime() {
     if (editindex == -2) {
-    int ind = subs.insert(-1, (editor) {
+      int ind = subs.insert(-1, (editor) {
         editor.text = "";
         editor.start = Millis(player.state.position.inMilliseconds);
         editor.end = Millis(player.state.position.inMilliseconds + 100);
         return true;
-    });
-    editindex = ind;
-    }
-    else {
+      });
+      editindex = ind;
+    } else {
       subs.edit(editindex, (editor) {
         editor.start = Millis(player.state.position.inMilliseconds);
         return true;
-    });
+      });
     }
   }
 
   void setEndTime() {
     if (editindex != -2) {
-    subs.edit(editindex, (editor) {
+      subs.edit(editindex, (editor) {
         editor.end = Millis(player.state.position.inMilliseconds);
         return true;
-    });
-    setState(() {});
+      });
+      setState(() {});
     }
     editindex = -2;
   }
 
   void deleteSub() {
     for (var i = 0; i < subs.length - 1; i++) {
-      if (subs[i].start.ticks < player.state.position.inMilliseconds && player.state.position.inMilliseconds < subs[i + 1].start.ticks) {
+      if (subs[i].start.ticks < player.state.position.inMilliseconds &&
+          player.state.position.inMilliseconds < subs[i + 1].start.ticks) {
         saves_subs.add(subs[i]);
         subs.edit(i, (_) => false);
         if (saves_subs.length == 100) {
@@ -293,22 +301,26 @@ class _MyHomePageState extends State<MyHomePage> {
     );
     subs.export(File(result.toString()), srt.export);
   }
-  
+
   void PressedCtrlZ() {
-    if (saves_subs.length == 0) {return;}
+    if (saves_subs.length == 0) {
+      return;
+    }
     var s = saves_subs[saves_subs.length - 1];
     subs.insert(-1, (editor) {
-        editor.text = s.text;
-        editor.start = s.start;
-        editor.end = s.end;
-        return true;
+      editor.text = s.text;
+      editor.start = s.start;
+      editor.end = s.end;
+      return true;
     });
     saves_subs.removeAt(saves_subs.length - 1);
     setState(() {});
   }
 
   void PressedDel() {
-    if (_selectedIndex == -1) {return;}
+    if (_selectedIndex == -1) {
+      return;
+    }
     saves_subs.add(subs[_selectedIndex]);
     subs.edit(_selectedIndex, (_) => false);
     if (saves_subs.length == 100) {
@@ -316,15 +328,15 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     setState(() {});
     _selectedIndex == -1;
-    }
+  }
 
   void toTimeVideo() {
     Millis time = subs[_selectedIndex].start;
     player.seek(Duration(
-      hours: time.format().hour,
-      minutes: time.format().minute,
-      seconds: time.format().second,
-      milliseconds: time.format().millisecond));
+        hours: time.format().hour,
+        minutes: time.format().minute,
+        seconds: time.format().second,
+        milliseconds: time.format().millisecond));
   }
 
   @override
@@ -332,7 +344,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final width = MediaQuery.sizeOf(context).width;
 
     return Scaffold(
-      
       appBar: AppBar(
         //Верхняя часть с именем
         // TRY THIS: Try changing the color here to a specific color (to
@@ -342,212 +353,233 @@ class _MyHomePageState extends State<MyHomePage> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
-        
       ),
-    body: Shortcuts( 
-      shortcuts: <ShortcutActivator, Intent>{
-      LogicalKeySet(LogicalKeyboardKey.keyZ, LogicalKeyboardKey.controlLeft):
-          const IncrementIntent(),
-      LogicalKeySet(LogicalKeyboardKey.delete, LogicalKeyboardKey.shiftRight):
-        const IncrementIntent2(),
-    },
-    child: Actions(
-      actions: <Type, Action<Intent>>{
-        IncrementIntent: CallbackAction<IncrementIntent>(
-          onInvoke: (IncrementIntent intent) => PressedCtrlZ(),
-        ),
-        IncrementIntent2: CallbackAction<IncrementIntent2>(
-          onInvoke: (IncrementIntent2 intent) => PressedDel(),
-        ),
-      },
-      child: Row(
-        //Тело, разделённое по колонкам
-        children: [
-          Column(
+      body: Shortcuts(
+        shortcuts: <ShortcutActivator, Intent>{
+          LogicalKeySet(
+                  LogicalKeyboardKey.keyZ, LogicalKeyboardKey.controlLeft):
+              const IncrementIntent(),
+          LogicalKeySet(
+                  LogicalKeyboardKey.delete, LogicalKeyboardKey.shiftRight):
+              const IncrementIntent2(),
+        },
+        child: Actions(
+          actions: <Type, Action<Intent>>{
+            IncrementIntent: CallbackAction<IncrementIntent>(
+              onInvoke: (IncrementIntent intent) => PressedCtrlZ(),
+            ),
+            IncrementIntent2: CallbackAction<IncrementIntent2>(
+              onInvoke: (IncrementIntent2 intent) => PressedDel(),
+            ),
+          },
+          child: Row(
+            //Тело, разделённое по колонкам
             children: [
-              SizedBox(
-                // Коробка под видео
-                width: width * playerPortion,
-                //width: MediaQuery.of(context).size.width,
-                height: width * playerPortion * RATIO,
-                // Use [Video] widget to display video output.
-                child: Video(controller: controller),
-              ),
-              SizedBox(
-                height: MediaQuery.sizeOf(context).height * 0.01,
-              ),
-              Row(
-                spacing: width * 0.02, // Помним, 0,7 отведено под плеер
-                
-                // Для кнопок нужно разделить пространство по столбикам
+              Column(
                 children: [
-                  // Кнопка со временем
-                  ActionButton(
-                    tooltip: 'Tells the time',
-                    width: width * 0.06,
-                    height: width * 0.06,
-                    onPressed: _tellTime,
-                    icon: Icons.access_time_outlined,
-                  ),
-                  
-                  // Кнопка выбора видеофайла
-                  ActionButton(
-                    tooltip: 'Choose video file',
-                    width: width * 0.06,
-                    height: width * 0.06,
-                    onPressed: getFileVideo,
-                    icon: Icons.video_call_rounded,
-                  ),
-                  
-                  // Кнопка выбора файла субтитров
-                  ActionButton(
-                    tooltip: 'Choose subtitle file',
-                    width: width * 0.06,
-                    height: width * 0.06,
-                    onPressed: getFileSubtitle,
-                    icon: Icons.text_snippet_rounded,
-                  ),
-                  
                   SizedBox(
-                    width: width * 0.01,
+                    // Коробка под видео
+                    width: width * playerPortion,
+                    //width: MediaQuery.of(context).size.width,
+                    height: width * playerPortion * RATIO,
+                    // Use [Video] widget to display video output.
+                    child: Video(controller: controller),
                   ),
-                  
+                  SizedBox(
+                    height: MediaQuery.sizeOf(context).height * 0.01,
+                  ),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    spacing: width * 0.01,
+                    spacing: width * 0.02, // Помним, 0,7 отведено под плеер
+
+                    // Для кнопок нужно разделить пространство по столбикам
                     children: [
+                      // Кнопка со временем
                       ActionButton(
-                        tooltip: "Set time",
-                        height: width * 0.03,
-                        width: width * 0.03,
-                        onPressed: setTime,
-                        icon: Icons.timer_outlined
+                        tooltip: 'Tells the time',
+                        width: width * 0.06,
+                        height: width * 0.06,
+                        onPressed: _tellTime,
+                        icon: Icons.access_time_outlined,
                       ),
+
+                      // Кнопка выбора видеофайла
                       ActionButton(
-                        tooltip: 'Set start-time',
-                        width: width * 0.03,
-                        height: width * 0.03,
-                        onPressed: setStartTime,
-                        icon: Icons.more_time,
+                        tooltip: 'Choose video file',
+                        width: width * 0.06,
+                        height: width * 0.06,
+                        onPressed: getFileVideo,
+                        icon: Icons.video_call_rounded,
                       ),
+
+                      // Кнопка выбора файла субтитров
                       ActionButton(
-                        tooltip: 'Set end-time',
-                        width: width * 0.03,
-                        height: width * 0.03,
-                        onPressed: setEndTime,
-                        icon: Icons.timer_rounded,
+                        tooltip: 'Choose subtitle file',
+                        width: width * 0.06,
+                        height: width * 0.06,
+                        onPressed: getFileSubtitle,
+                        icon: Icons.text_snippet_rounded,
                       ),
-                      ActionButton(
-                        tooltip: 'Delete sub',
-                        width: width * 0.03,
-                        height: width * 0.03,
-                        onPressed: deleteSub,
-                        icon: Icons.auto_delete,
+
+                      SizedBox(
+                        width: width * 0.01,
                       ),
-                      ActionButton(
-                        tooltip: 'Export subtitles',
-                        width: width * 0.03,
-                        height: width * 0.03,
-                        onPressed: exportSubs,
-                        icon: Icons.save_alt,
-                      ),
-                  ]),
+
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          spacing: width * 0.01,
+                          children: [
+                            ActionButton(
+                                tooltip: "Set time",
+                                height: width * 0.03,
+                                width: width * 0.03,
+                                onPressed: setTime,
+                                icon: Icons.timer_outlined),
+                            ActionButton(
+                              tooltip: 'Set start-time',
+                              width: width * 0.03,
+                              height: width * 0.03,
+                              onPressed: setStartTime,
+                              icon: Icons.more_time,
+                            ),
+                            ActionButton(
+                              tooltip: 'Set end-time',
+                              width: width * 0.03,
+                              height: width * 0.03,
+                              onPressed: setEndTime,
+                              icon: Icons.timer_rounded,
+                            ),
+                            ActionButton(
+                              tooltip: 'Delete sub',
+                              width: width * 0.03,
+                              height: width * 0.03,
+                              onPressed: deleteSub,
+                              icon: Icons.auto_delete,
+                            ),
+                            ActionButton(
+                              tooltip: 'Export subtitles',
+                              width: width * 0.03,
+                              height: width * 0.03,
+                              onPressed: exportSubs,
+                              icon: Icons.save_alt,
+                            ),
+                          ]),
+                    ],
+                  ),
                 ],
+              ),
+              Container(width: 5, color: Colors.black),
+              Expanded(
+                child: ListView.builder(
+                    // Построитель списка для субтитров
+                    controller: _controller2,
+                    itemCount: subs.length, // количество субтитров
+                    itemBuilder: (context, i) => Row(
+                          children: [
+                            Flexible(
+                                child: ListTile(
+                              onTap: () {
+                                if (_selectedIndex != i) {
+                                  isDoubleTap = false;
+                                }
+                                if (isDoubleTap) {
+                                  toTimeVideo();
+                                  isDoubleTap = false;
+                                } else {
+                                  isDoubleTap = true;
+                                }
+                                setState(() {
+                                  _selectedIndex = i;
+                                });
+                              },
+                              selected: i == _selectedIndex,
+                              title: Row(children: [
+                                SizedBox(
+                                  width: width * 0.08,
+                                  child: TextField(
+                                    onTap: () {
+                                      _selectedIndex = i;
+                                    },
+                                    controller: TextEditingController()
+                                      ..text =
+                                          "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].start.ticks, isUtc: true))}",
+                                    onChanged: (value) =>
+                                        {EditTimeStart(value)},
+                                    onEditingComplete: () => {
+                                      CompleteTimeStart(),
+                                    },
+                                    decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      isDense: true,
+                                      contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 0, vertical: 0),
+                                    ),
+                                  ),
+                                ),
+                                Text(" - "),
+                                SizedBox(
+                                  width: width * 0.08,
+                                  child: TextField(
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedIndex = i;
+                                      });
+                                    },
+                                    controller: TextEditingController()
+                                      ..text =
+                                          "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].end.ticks, isUtc: true))}",
+                                    onChanged: (value) => {EditTimeEnd(value)},
+                                    onEditingComplete: () => {
+                                      CompleteTimeEnd(),
+                                    },
+                                    decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      isDense: true,
+                                      contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 0, vertical: 0),
+                                    ),
+                                  ),
+                                ),
+                              ]),
+                              subtitle: TextFormField(
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedIndex = i;
+                                    });
+                                  },
+                                  controller: TextEditingController()
+                                    ..text = subs[i].text,
+                                  minLines: 1,
+                                  maxLines: 2,
+                                  onChanged: (value) => {EditLine(value, i)}),
+                              onFocusChange: (value) => {
+                                subs.export(File("auto.srt"), srt.export),
+                                player.setSubtitleTrack(
+                                    SubtitleTrack.uri("auto.srt")),
+                              },
+                            )),
+                            SizedBox(
+                              width: width * 0.03,
+                              height: width * 0.03,
+                              child: IconButton(
+                                  icon: Icon(Icons.delete),
+                                  onPressed: () {
+                                    setState(() {
+                                      saves_subs.add(subs[i]);
+                                      subs.edit(i, (_) => false);
+                                      if (saves_subs.length == 100) {
+                                        saves_subs.removeAt(0);
+                                      }
+                                    });
+                                  }),
+                            ),
+                            SizedBox(
+                                width: width * 0.008, height: width * 0.008)
+                          ],
+                        )),
               ),
             ],
           ),
-          Container(width: 5, color: Colors.black),
-          Expanded(
-            child: ListView.builder(
-              // Построитель списка для субтитров
-              controller: _controller2,
-              itemCount: subs.length, // количество субтитров
-              itemBuilder: (context, i) => 
-              Row(
-              children: [Flexible(
-                child: ListTile(
-                onTap: () {
-                  if (_selectedIndex != i) {isDoubleTap = false;}
-                  if (isDoubleTap) {
-                    toTimeVideo();
-                    isDoubleTap = false;
-                    }
-                  else {isDoubleTap = true;}
-                  setState(() {_selectedIndex = i;});
-                  },
-                selected: i == _selectedIndex,
-                title: Row(
-                  children: [
-                  SizedBox(
-                    width: width * 0.08,
-                    child: TextField(
-                      onTap: () { _selectedIndex = i;},
-                      controller: TextEditingController()..text = "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].start.ticks, isUtc:true))}",
-                      onChanged: (value) => {EditTimeStart(value)},
-                      onEditingComplete: () => {
-                        CompleteTimeStart(),
-                        },
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                        ),
-                        ),
-                      ),
-                  Text(" - "),
-                  SizedBox(
-                    width: width * 0.08,
-                    child: TextField(
-                      onTap: () {setState(() {_selectedIndex = i;});},
-                      controller: TextEditingController()..text = "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].end.ticks, isUtc:true))}",
-                      onChanged: (value) => {EditTimeEnd(value)},
-                      onEditingComplete: () => {
-                        CompleteTimeEnd(),
-                        },
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                        ),
-                        ),
-                  ),
-                ]
-                ),
-                
-                subtitle: TextFormField(
-                  onTap: () {setState(() {_selectedIndex = i;});},
-                  controller: TextEditingController()..text = subs[i].text,
-                  minLines: 1,
-                  maxLines: 2,
-                  onChanged: (value) => {EditLine(value, i)}),
-                  onFocusChange: (value) => {
-                    subs.export(File("auto.srt"), srt.export),
-                    player.setSubtitleTrack(SubtitleTrack.uri("auto.srt")),
-                    },
-              )),
-              SizedBox(
-                width: width * 0.03,
-                height: width * 0.03,
-                child:   IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () {
-                    setState(() {
-                      saves_subs.add(subs[i]);
-                      subs.edit(i, (_) => false);
-                      if (saves_subs.length == 100) {
-                        saves_subs.removeAt(0);
-                      }
-                    });
-                  }),),
-                  
-                  SizedBox(
-                width: width * 0.008,
-                height: width * 0.008)],)
-            ),
-          ),
-        ],
-      ),
-      ),
+        ),
       ),
     );
   }

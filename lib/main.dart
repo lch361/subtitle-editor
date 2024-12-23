@@ -10,6 +10,7 @@ import 'package:file_picker/file_picker.dart';
 
 import 'package:subtitle_editor/editor/subtitles.dart';
 import 'package:subtitle_editor/editor/time.dart';
+import 'package:subtitle_editor/editor/action_button.dart';
 import 'package:subtitle_editor/editor/import/srt.dart' as srt;
 import 'package:subtitle_editor/editor/export/srt.dart' as srt;
 import 'package:subtitle_editor/collections/result.dart';
@@ -328,6 +329,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+
     return Scaffold(
       
       appBar: AppBar(
@@ -364,129 +367,91 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               SizedBox(
                 // Коробка под видео
-                width: MediaQuery.sizeOf(context).width * playerPortion,
+                width: width * playerPortion,
                 //width: MediaQuery.of(context).size.width,
-                height:
-                    MediaQuery.of(context).size.width * playerPortion * RATIO,
+                height: width * playerPortion * RATIO,
                 // Use [Video] widget to display video output.
-                child: Video(controller: controller,
-                ),
+                child: Video(controller: controller),
               ),
               SizedBox(
                 height: MediaQuery.sizeOf(context).height * 0.01,
               ),
               Row(
+                spacing: width * 0.02, // Помним, 0,7 отведено под плеер
+                
                 // Для кнопок нужно разделить пространство по столбикам
                 children: [
                   // Кнопка со временем
-                  SizedBox(
-                    width: MediaQuery.sizeOf(context).width * 0.06,
-                    height: MediaQuery.sizeOf(context).width * 0.06,
-                    child: FloatingActionButton(
-                      onPressed: _tellTime,
-                      tooltip: 'Tells the time',
-                      child: const Icon(Icons.access_time_outlined),
-                    ),
+                  ActionButton(
+                    tooltip: 'Tells the time',
+                    width: width * 0.06,
+                    height: width * 0.06,
+                    onPressed: _tellTime,
+                    icon: Icons.access_time_outlined,
                   ),
-
-                  SizedBox(
-                    width: MediaQuery.sizeOf(context).width *
-                        0.02, // Помним, 0,7 отведено под плеер
-                  ),
-
+                  
                   // Кнопка выбора видеофайла
-                  SizedBox(
-                    width: MediaQuery.sizeOf(context).width * 0.06,
-                    height: MediaQuery.sizeOf(context).width * 0.06,
-                    child: FloatingActionButton(
-                      onPressed: getFileVideo,
-                      tooltip: 'Choose video file',
-                      child: const Icon(Icons.video_call_rounded),
-                    ),
+                  ActionButton(
+                    tooltip: 'Choose video file',
+                    width: width * 0.06,
+                    height: width * 0.06,
+                    onPressed: getFileVideo,
+                    icon: Icons.video_call_rounded,
                   ),
-
-                  SizedBox(
-                    width: MediaQuery.sizeOf(context).width *
-                        0.02, // Помним, 0,7 отведено под плеер
-                  ),
-
+                  
                   // Кнопка выбора файла субтитров
-                  SizedBox(
-                    width: MediaQuery.sizeOf(context).width * 0.06,
-                    height: MediaQuery.sizeOf(context).width * 0.06,
-                    child: FloatingActionButton(
-                      onPressed: getFileSubtitle,
-                      tooltip: 'Choose subtitle file',
-                      child: const Icon(Icons.text_snippet_rounded),
-                    ),
+                  ActionButton(
+                    tooltip: 'Choose subtitle file',
+                    width: width * 0.06,
+                    height: width * 0.06,
+                    onPressed: getFileSubtitle,
+                    icon: Icons.text_snippet_rounded,
                   ),
+                  
                   SizedBox(
-                      width: MediaQuery.sizeOf(context).width * 0.05,
-                      height: MediaQuery.sizeOf(context).width * 0.05,),
+                    width: width * 0.01,
+                  ),
+                  
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    spacing: width * 0.01,
                     children: [
-                      SizedBox(
-                      width: MediaQuery.sizeOf(context).width * 0.03,
-                      height: MediaQuery.sizeOf(context).width * 0.03,
-                      
-                      child: FloatingActionButton(
+                      ActionButton(
+                        tooltip: "Set time",
+                        height: width * 0.03,
+                        width: width * 0.03,
                         onPressed: setTime,
-                        tooltip: 'Set time',
-                        child: const Icon(Icons.timer_outlined),
+                        icon: Icons.timer_outlined
                       ),
-                    ),
-                    SizedBox(
-                      width: MediaQuery.sizeOf(context).width * 0.01,
-                      height: MediaQuery.sizeOf(context).width * 0.01,),
-                      SizedBox(
-                      width: MediaQuery.sizeOf(context).width * 0.03,
-                      height: MediaQuery.sizeOf(context).width * 0.03,
-                      
-                      child: FloatingActionButton(
-                        onPressed: setStartTime,
+                      ActionButton(
                         tooltip: 'Set start-time',
-                        child: const Icon(Icons.more_time),
+                        width: width * 0.03,
+                        height: width * 0.03,
+                        onPressed: setStartTime,
+                        icon: Icons.more_time,
                       ),
-                    ),
-                    SizedBox(
-                      width: MediaQuery.sizeOf(context).width * 0.01,
-                      height: MediaQuery.sizeOf(context).width * 0.01,),
-                    SizedBox(
-                      width: MediaQuery.sizeOf(context).width * 0.03,
-                      height: MediaQuery.sizeOf(context).width * 0.03,
-                      child: FloatingActionButton(
-                        onPressed: setEndTime,
+                      ActionButton(
                         tooltip: 'Set end-time',
-                        child: const Icon(Icons.timer_rounded),
+                        width: width * 0.03,
+                        height: width * 0.03,
+                        onPressed: setEndTime,
+                        icon: Icons.timer_rounded,
                       ),
-                    ),
-                    SizedBox(
-                      width: MediaQuery.sizeOf(context).width * 0.01,
-                      height: MediaQuery.sizeOf(context).width * 0.01,),
-                    SizedBox(
-                      width: MediaQuery.sizeOf(context).width * 0.03,
-                      height: MediaQuery.sizeOf(context).width * 0.03,
-                      child: FloatingActionButton(
-                        onPressed: deleteSub,
+                      ActionButton(
                         tooltip: 'Delete sub',
-                        child: const Icon(Icons.auto_delete),
+                        width: width * 0.03,
+                        height: width * 0.03,
+                        onPressed: deleteSub,
+                        icon: Icons.auto_delete,
                       ),
-                    ),
-                    SizedBox(
-                      width: MediaQuery.sizeOf(context).width * 0.01,
-                      height: MediaQuery.sizeOf(context).width * 0.01,),
-                    SizedBox(
-                      width: MediaQuery.sizeOf(context).width * 0.03,
-                      height: MediaQuery.sizeOf(context).width * 0.03,
-                      child: FloatingActionButton(
-                        onPressed: exportSubs,
+                      ActionButton(
                         tooltip: 'Export subtitles',
-                        child: const Icon(Icons.save_alt),
+                        width: width * 0.03,
+                        height: width * 0.03,
+                        onPressed: exportSubs,
+                        icon: Icons.save_alt,
                       ),
-                    ),
                   ]),
-                  
                 ],
               ),
             ],
@@ -514,7 +479,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 title: Row(
                   children: [
                   SizedBox(
-                    width: MediaQuery.sizeOf(context).width * 0.08,
+                    width: width * 0.08,
                     child: TextField(
                       onTap: () { _selectedIndex = i;},
                       controller: TextEditingController()..text = "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].start.ticks, isUtc:true))}",
@@ -531,7 +496,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                   Text(" - "),
                   SizedBox(
-                    width: MediaQuery.sizeOf(context).width * 0.08,
+                    width: width * 0.08,
                     child: TextField(
                       onTap: () {setState(() {_selectedIndex = i;});},
                       controller: TextEditingController()..text = "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].end.ticks, isUtc:true))}",
@@ -561,8 +526,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     },
               )),
               SizedBox(
-                width: MediaQuery.sizeOf(context).width * 0.03,
-                height: MediaQuery.sizeOf(context).width * 0.03,
+                width: width * 0.03,
+                height: width * 0.03,
                 child:   IconButton(
                   icon: Icon(Icons.delete),
                   onPressed: () {
@@ -576,8 +541,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   }),),
                   
                   SizedBox(
-                width: MediaQuery.sizeOf(context).width * 0.008,
-                height: MediaQuery.sizeOf(context).width * 0.008)],)
+                width: width * 0.008,
+                height: width * 0.008)],)
             ),
           ),
         ],

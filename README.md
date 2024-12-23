@@ -47,6 +47,14 @@
 См. [релизы](https://github.com/lch361/subtitle-editor/releases/) для
 скомпилированных программ всех версий.
 
+Пример установки и запуска для Linux, x64:
+```sh
+mkdir subtitle_editor
+cd subtitle_editor
+tar -xf subtitle_editor-linux-x64-0.1.0.tar.xz
+./subtitle_editor
+```
+
 # Сборка 
 1) [Установите Flutter](https://docs.flutter.dev/get-started/install) версии 3.27.1 или выше.
     - Для сборки на Linux также требуется установить пакет `libmpv-dev`.

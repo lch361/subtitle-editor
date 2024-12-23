@@ -146,7 +146,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // player.open(Media(5 
     //     'https://user-images.githubusercontent.com/28951144/229373695-22f88f13-d18f-4288-9bf1-c3e078d83722.mp4'));
     player.open(Media(
-        'test_subs/6.Terminal Provocations.demo.mp4'));
+        'test_subs/6.Terminal Provocations.demo.mp4'), play: false);
   }
 
   @override

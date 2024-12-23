@@ -64,12 +64,19 @@ class IncrementIntent2 extends Intent {
   const IncrementIntent2();
 }
 
+class EscIntent extends Intent {
+    const EscIntent();
+}
+
 class _MyHomePageState extends State<MyHomePage> {
   // Создаём плеер и управление плейером
   late Player player = Player();
   late VideoController controller = VideoController(player);
   late SubtitleTrack subtitle = player.state.track.subtitle;
   final ScrollController _controller2 = ScrollController();
+
+  // Добавляет фокус для перемещения на видео при нажатии esc
+  late final FocusNode videoFocusNode;
 
   // Выбранный файл-видео
   late String? _file_video_path;
@@ -134,11 +141,14 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    
+    videoFocusNode = FocusNode();
   }
 
   @override
   void dispose() {
     player.dispose();
+    videoFocusNode.dispose();
     super.dispose();
   }
 
@@ -310,6 +320,13 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     setState(() {});
     _selectedIndex == -1;
+    }
+
+  void PressedEsc() {
+    //videoFocusNode.requestFocus();
+    FocusScopeNode currentFocus = FocusScope.of(context);
+    currentFocus.unfocus();
+    //videoFocusNode.requestFocus();
   }
 
   void toTimeVideo() {
@@ -326,237 +343,236 @@ class _MyHomePageState extends State<MyHomePage> {
     final width = MediaQuery.sizeOf(context).width;
 
     return Scaffold(
-      body: Shortcuts(
-        shortcuts: <ShortcutActivator, Intent>{
-          LogicalKeySet(
-                  LogicalKeyboardKey.keyZ, LogicalKeyboardKey.controlLeft):
-              const IncrementIntent(),
-          LogicalKeySet(
-                  LogicalKeyboardKey.delete, LogicalKeyboardKey.shiftRight):
-              const IncrementIntent2(),
-        },
-        child: Actions(
-          actions: <Type, Action<Intent>>{
-            IncrementIntent: CallbackAction<IncrementIntent>(
-              onInvoke: (IncrementIntent intent) => PressedCtrlZ(),
-            ),
-            IncrementIntent2: CallbackAction<IncrementIntent2>(
-              onInvoke: (IncrementIntent2 intent) => PressedDel(),
-            ),
-          },
-          child: Row(
-            //Тело, разделённое по колонкам
+      
+      appBar: AppBar(
+        //Верхняя часть с именем
+        // TRY THIS: Try changing the color here to a specific color (to
+        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+        // change color while the other colors stay the same.
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+        title: Text(widget.title),
+        
+      ),
+    body: Shortcuts( 
+      shortcuts: <ShortcutActivator, Intent>{
+      LogicalKeySet(LogicalKeyboardKey.keyZ, LogicalKeyboardKey.controlLeft):
+          const IncrementIntent(),
+      LogicalKeySet(LogicalKeyboardKey.delete, LogicalKeyboardKey.shiftRight):
+        const IncrementIntent2(),
+      LogicalKeySet(LogicalKeyboardKey.escape):
+        const EscIntent(),
+    },
+    child: Actions(
+      actions: <Type, Action<Intent>>{
+        IncrementIntent: CallbackAction<IncrementIntent>(
+          onInvoke: (IncrementIntent intent) => PressedCtrlZ(),
+        ),
+        IncrementIntent2: CallbackAction<IncrementIntent2>(
+          onInvoke: (IncrementIntent2 intent) => PressedDel(),
+        ),
+        EscIntent: CallbackAction<EscIntent>(
+          onInvoke: (EscIntent intent) => PressedEsc(),
+          ) 
+      },
+      child: Row(
+        //Тело, разделённое по колонкам
+        children: [
+          Column(
             children: [
-              Column(
-                children: [
-                  SizedBox(
-                    // Коробка под видео
-                    width: width * playerPortion,
-                    height: width * playerPortion * RATIO,
-                    // Use [Video] widget to display video output.
-                    child: Video(controller: controller),
-                  ),
-                  SizedBox(
-                    height: MediaQuery.sizeOf(context).height * 0.01,
-                  ),
-                  Row(
-                    spacing: width * 0.02, // Помним, 0,7 отведено под плеер
-
-                    // Для кнопок нужно разделить пространство по столбикам
-                    children: [
-                      // Кнопка со временем
-                      ActionButton(
-                        tooltip: 'Tells the time',
-                        width: width * 0.06,
-                        height: width * 0.06,
-                        onPressed: _tellTime,
-                        icon: Icons.access_time_outlined,
-                      ),
-
-                      // Кнопка выбора видеофайла
-                      ActionButton(
-                        tooltip: 'Choose video file',
-                        width: width * 0.06,
-                        height: width * 0.06,
-                        onPressed: getFileVideo,
-                        icon: Icons.video_call_rounded,
-                      ),
-
-                      // Кнопка выбора файла субтитров
-                      ActionButton(
-                        tooltip: 'Choose subtitle file',
-                        width: width * 0.06,
-                        height: width * 0.06,
-                        onPressed: getFileSubtitle,
-                        icon: Icons.text_snippet_rounded,
-                      ),
-
-                      // Плюс пространство между большими и маленькими кнопками
-                      SizedBox(
-                        width: width * 0.01,
-                      ),
-
-                      // Маленькие кнопки
-                      Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          spacing: width * 0.01,
-                          children: [
-                            ActionButton(
-                                tooltip: "Set time",
-                                height: width * 0.03,
-                                width: width * 0.03,
-                                onPressed: setTime,
-                                icon: Icons.timer_outlined),
-                            ActionButton(
-                              tooltip: 'Set start-time',
-                              width: width * 0.03,
-                              height: width * 0.03,
-                              onPressed: setStartTime,
-                              icon: Icons.more_time,
-                            ),
-                            ActionButton(
-                              tooltip: 'Set end-time',
-                              width: width * 0.03,
-                              height: width * 0.03,
-                              onPressed: setEndTime,
-                              icon: Icons.timer_rounded,
-                            ),
-                            ActionButton(
-                              tooltip: 'Delete sub',
-                              width: width * 0.03,
-                              height: width * 0.03,
-                              onPressed: deleteSub,
-                              icon: Icons.auto_delete,
-                            ),
-                            ActionButton(
-                              tooltip: 'Export subtitles',
-                              width: width * 0.03,
-                              height: width * 0.03,
-                              onPressed: exportSubs,
-                              icon: Icons.save_alt,
-                            ),
-                          ]),
-                    ],
-                  ),
-                ],
+                SizedBox(
+                // Коробка под видео
+                width: width * playerPortion,
+                //width: MediaQuery.of(context).size.width,
+                height: width * playerPortion * RATIO,
+                // Use [Video] widget to display video output.
+                child: Focus(
+                  focusNode: videoFocusNode,
+                  child: Video(controller: controller,
+                  )),
+                ),
+              SizedBox(
+                height: MediaQuery.sizeOf(context).height * 0.01,
               ),
-              Container(width: 5, color: Colors.black),
-              Expanded(
-                child: ListView.builder(
-                    // Построитель списка для субтитров
-                    controller: _controller2,
-                    itemCount: subs.length, // количество субтитров
-                    itemBuilder: (context, i) => Row(
-                          children: [
-                            Flexible(
-                                child: ListTile(
-                              onTap: () {
-                                if (_selectedIndex != i) {
-                                  isDoubleTap = false;
-                                }
-                                if (isDoubleTap) {
-                                  toTimeVideo();
-                                  isDoubleTap = false;
-                                } else {
-                                  isDoubleTap = true;
-                                }
-                                setState(() {
-                                  _selectedIndex = i;
-                                });
-                              },
-                              selected: i == _selectedIndex,
-                              title: Row(children: [
-                                SizedBox(
-                                  width: width * 0.08,
-                                  child: TextField(
-                                    onTap: () {
-                                      _selectedIndex = i;
-                                    },
-                                    controller: TextEditingController()
-                                      ..text = DateFormat('HH:mm:ss,S').format(
-                                          DateTime.fromMillisecondsSinceEpoch(
-                                              subs[i].start.ticks,
-                                              isUtc: true)),
-                                    onChanged: (value) =>
-                                        {EditTimeStart(value)},
-                                    onEditingComplete: () => {
-                                      CompleteTimeStart(),
-                                    },
-                                    decoration: const InputDecoration(
-                                      border: InputBorder.none,
-                                      isDense: true,
-                                      contentPadding: EdgeInsets.symmetric(
-                                          horizontal: 0, vertical: 0),
-                                    ),
-                                  ),
-                                ),
-                                Text(" - "),
-                                SizedBox(
-                                  width: width * 0.08,
-                                  child: TextField(
-                                    onTap: () {
-                                      setState(() {
-                                        _selectedIndex = i;
-                                      });
-                                    },
-                                    controller: TextEditingController()
-                                      ..text = DateFormat('HH:mm:ss,S').format(
-                                          DateTime.fromMillisecondsSinceEpoch(
-                                              subs[i].end.ticks,
-                                              isUtc: true)),
-                                    onChanged: (value) => {EditTimeEnd(value)},
-                                    onEditingComplete: () => {
-                                      CompleteTimeEnd(),
-                                    },
-                                    decoration: const InputDecoration(
-                                      border: InputBorder.none,
-                                      isDense: true,
-                                      contentPadding: EdgeInsets.symmetric(
-                                          horizontal: 0, vertical: 0),
-                                    ),
-                                  ),
-                                ),
-                              ]),
-                              subtitle: TextFormField(
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedIndex = i;
-                                    });
-                                  },
-                                  controller: TextEditingController()
-                                    ..text = subs[i].text,
-                                  minLines: 1,
-                                  maxLines: 2,
-                                  onChanged: (value) => {EditLine(value, i)}),
-                              onFocusChange: (value) => {
-                                subs.export(File("auto.srt"), srt.export),
-                                player.setSubtitleTrack(
-                                    SubtitleTrack.uri("auto.srt")),
-                              },
-                            )),
-                            SizedBox(
-                              width: width * 0.03,
-                              height: width * 0.03,
-                              child: IconButton(
-                                  icon: Icon(Icons.delete),
-                                  onPressed: () {
-                                    setState(() {
-                                      saves_subs.add(subs[i]);
-                                      subs.edit(i, (_) => false);
-                                      if (saves_subs.length == 100) {
-                                        saves_subs.removeAt(0);
-                                      }
-                                    });
-                                  }),
-                            ),
-                            SizedBox(
-                                width: width * 0.008, height: width * 0.008)
-                          ],
-                        )),
+              Row(
+                spacing: width * 0.02, // Помним, 0,7 отведено под плеер
+                
+                // Для кнопок нужно разделить пространство по столбикам
+                children: [
+                  // Кнопка со временем
+                  ActionButton(
+                    tooltip: 'Tells the time',
+                    width: width * 0.06,
+                    height: width * 0.06,
+                    onPressed: _tellTime,
+                    icon: Icons.access_time_outlined,
+                  ),
+                  
+                  // Кнопка выбора видеофайла
+                  ActionButton(
+                    tooltip: 'Choose video file',
+                    width: width * 0.06,
+                    height: width * 0.06,
+                    onPressed: getFileVideo,
+                    icon: Icons.video_call_rounded,
+                  ),
+                  
+                  // Кнопка выбора файла субтитров
+                  ActionButton(
+                    tooltip: 'Choose subtitle file',
+                    width: width * 0.06,
+                    height: width * 0.06,
+                    onPressed: getFileSubtitle,
+                    icon: Icons.text_snippet_rounded,
+                  ),
+                  
+                  SizedBox(
+                    width: width * 0.01,
+                  ),
+                  
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    spacing: width * 0.01,
+                    children: [
+                      ActionButton(
+                        tooltip: "Set time",
+                        height: width * 0.03,
+                        width: width * 0.03,
+                        onPressed: setTime,
+                        icon: Icons.timer_outlined
+                      ),
+                      ActionButton(
+                        tooltip: 'Set start-time',
+                        width: width * 0.03,
+                        height: width * 0.03,
+                        onPressed: setStartTime,
+                        icon: Icons.more_time,
+                      ),
+                      ActionButton(
+                        tooltip: 'Set end-time',
+                        width: width * 0.03,
+                        height: width * 0.03,
+                        onPressed: setEndTime,
+                        icon: Icons.timer_rounded,
+                      ),
+                      ActionButton(
+                        tooltip: 'Delete sub',
+                        width: width * 0.03,
+                        height: width * 0.03,
+                        onPressed: deleteSub,
+                        icon: Icons.auto_delete,
+                      ),
+                      ActionButton(
+                        tooltip: 'Export subtitles',
+                        width: width * 0.03,
+                        height: width * 0.03,
+                        onPressed: exportSubs,
+                        icon: Icons.save_alt,
+                      ),
+                  ]),
+                ],
               ),
             ],
           ),
-        ),
+          Container(width: 5, color: Colors.black),
+          Expanded(
+            child: ListView.builder(
+              // Построитель списка для субтитров
+              controller: _controller2,
+              itemCount: subs.length, // количество субтитров
+              itemBuilder: (context, i) => 
+              Row(
+              children: [Flexible(
+                child: ListTile(
+                onTap: () {
+                  if (_selectedIndex != i) {isDoubleTap = false;}
+                  if (isDoubleTap) {
+                    toTimeVideo();
+                    isDoubleTap = false;
+                    }
+                  else {isDoubleTap = true;}
+                  setState(() {_selectedIndex = i;});
+                  },
+                selected: i == _selectedIndex,
+                title: Row(
+                  children: [
+                  SizedBox(
+                    width: width * 0.08,
+                    child: TextField(
+                      onTap: () { _selectedIndex = i;},
+                      controller: TextEditingController()..text = "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].start.ticks, isUtc:true))}",
+                      onChanged: (value) => {EditTimeStart(value)},
+                      onEditingComplete: () => {
+                        CompleteTimeStart(),
+                        },
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                        ),
+                        ),
+                      ),
+                  Text(" - "),
+                  SizedBox(
+                    width: width * 0.08,
+                    child: TextField(
+                      onTap: () {_selectedIndex = i;},
+                      controller: TextEditingController()..text = "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].end.ticks, isUtc:true))}",
+                      onChanged: (value) => {EditTimeEnd(value)},
+                      onEditingComplete: () => {
+                        CompleteTimeEnd(),
+                        },
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                        ),
+                        ),
+                  ),
+                ]
+                ),
+                
+                subtitle: TextFormField(
+                  onTap: () {_selectedIndex = i;},
+                  controller: TextEditingController()..text = subs[i].text,
+                  minLines: 1,
+                  maxLines: 3,
+                  onChanged: (value) => {EditLine(value, i)},
+                  onEditingComplete: () => {
+                        setState(() {_selectedIndex = i;}),
+                        },),
+                  onFocusChange: (value) => {
+                    subs.export(File("auto.srt"), srt.export),
+                    player.setSubtitleTrack(SubtitleTrack.uri("auto.srt")),
+                    },
+                )),
+              SizedBox(
+                width: width * 0.03,
+                height: width * 0.03,
+                child:   IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () {
+                    setState(() {
+                      saves_subs.add(subs[i]);
+                      subs.edit(i, (_) => false);
+                      if (saves_subs.length == 100) {
+                        saves_subs.removeAt(0);
+                      }
+                    });
+                  }),),
+                  
+              SizedBox(
+                width: width * 0.008,
+                height: width * 0.008,
+              ),
+              ],
+              )
+            ),
+          ),
+        ],
+      ),
+      ),
       ),
     );
   }

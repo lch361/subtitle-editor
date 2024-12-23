@@ -344,16 +344,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final width = MediaQuery.sizeOf(context).width;
 
     return Scaffold(
-      appBar: AppBar(
-        //Верхняя часть с именем
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
       body: Shortcuts(
         shortcuts: <ShortcutActivator, Intent>{
           LogicalKeySet(
@@ -380,7 +370,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   SizedBox(
                     // Коробка под видео
                     width: width * playerPortion,
-                    //width: MediaQuery.of(context).size.width,
                     height: width * playerPortion * RATIO,
                     // Use [Video] widget to display video output.
                     child: Video(controller: controller),
@@ -420,10 +409,12 @@ class _MyHomePageState extends State<MyHomePage> {
                         icon: Icons.text_snippet_rounded,
                       ),
 
+                      // Плюс пространство между большими и маленькими кнопками
                       SizedBox(
                         width: width * 0.01,
                       ),
 
+                      // Маленькие кнопки
                       Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           spacing: width * 0.01,
@@ -500,8 +491,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                       _selectedIndex = i;
                                     },
                                     controller: TextEditingController()
-                                      ..text =
-                                          "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].start.ticks, isUtc: true))}",
+                                      ..text = DateFormat('HH:mm:ss,S').format(
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                              subs[i].start.ticks,
+                                              isUtc: true)),
                                     onChanged: (value) =>
                                         {EditTimeStart(value)},
                                     onEditingComplete: () => {
@@ -525,8 +518,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                       });
                                     },
                                     controller: TextEditingController()
-                                      ..text =
-                                          "${DateFormat('HH:mm:ss,S').format(DateTime.fromMillisecondsSinceEpoch(subs[i].end.ticks, isUtc: true))}",
+                                      ..text = DateFormat('HH:mm:ss,S').format(
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                              subs[i].end.ticks,
+                                              isUtc: true)),
                                     onChanged: (value) => {EditTimeEnd(value)},
                                     onEditingComplete: () => {
                                       CompleteTimeEnd(),
